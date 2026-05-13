@@ -1,0 +1,24 @@
+name: Sync data.json from OneDrive
+
+on:
+  schedule:
+    - cron: '0 22 * * 1-5'  # 한국시간 오전 7시 (UTC 22:00) 평일만
+  workflow_dispatch:          # 수동 실행 버튼
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download data.json from OneDrive
+        run: |
+          curl -L "${{ secrets.ONEDRIVE_URL }}" -o data.json
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add data.json
+          git diff --staged --quiet || git commit -m "Auto update $(date +'%Y-%m-%d')"
+          git push
