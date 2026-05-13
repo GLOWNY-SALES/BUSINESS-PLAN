@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>글로니 경영 대시보드 2025–2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:13px;}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;background:#EEECE7;color:#1a1a1a;min-height:100vh;}
+
+/* ── Header ── */
+.hd{background:#111;color:#fff;padding:12px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.hd-l{display:flex;flex-direction:column;gap:1px;}
+.hd-brand{font-size:9px;color:#666;letter-spacing:.14em;text-transform:uppercase;}
+.hd-title{font-size:14px;font-weight:700;}
+.hd-r{display:flex;align-items:center;gap:7px;}
+.btn{padding:5px 13px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:none;font-family:inherit;white-space:nowrap;}
+.btn-vat{background:#fff;color:#111;position:relative;padding:5px 12px;}
+.btn-vat.excl{background:#374151;color:#fff;}
+.btn-vat .vtag{font-size:9px;font-weight:700;display:inline-block;padding:1px 5px;border-radius:3px;margin-left:4px;}
+.btn-vat .vtag.on{background:#10B981;color:#fff;}
+.btn-vat .vtag.off{background:#6B7280;color:#fff;}
+.btn-ghost{background:transparent;border:1px solid #3a3a3a;color:#aaa;}
+.btn-ghost:hover{border-color:#666;color:#fff;}
+.btn-blue{background:#2563EB;color:#fff;}
+.btn-blue:hover{background:#1D4ED8;}
+
+/* ── Nav ── */
+.nav{background:#fff;border-bottom:1px solid #E2E0DB;padding:0 22px;display:flex;align-items:center;gap:0;justify-content:space-between;flex-wrap:wrap;}
+.tab-g{display:flex;}
+.tab,.vtab{padding:12px 15px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:#888;white-space:nowrap;transition:color .12s;}
+.tab:hover,.vtab:hover{color:#333;}
+.tab.on{color:#111;border-bottom-color:#111;font-weight:700;}
+.vtab.on{color:#2563EB;border-bottom-color:#2563EB;font-weight:700;}
+.nav-sep{width:1px;background:#E2E0DB;margin:8px 0;align-self:stretch;}
+
+/* ── Main ── */
+.main{max-width:1200px;margin:0 auto;padding:20px 18px 60px;}
+
+/* ── KPI cards ── */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;}
+.kpi{background:#fff;border-radius:9px;padding:13px 15px;border:1px solid #E2E0DB;}
+.kpi-lbl{font-size:9px;color:#999;font-weight:700;letter-spacing:.05em;margin-bottom:4px;text-transform:uppercase;}
+.kpi-val{font-size:20px;font-weight:700;line-height:1.2;letter-spacing:-.02em;}
+.kpi-sub{font-size:10px;color:#bbb;margin-top:2px;}
+.kpi-dy{font-size:10px;font-weight:700;margin-top:2px;}
+.kpi-dy.up{color:#059669;}.kpi-dy.dn{color:#DC2626;}
+
+/* ── Chart card ── */
+.card{background:#fff;border-radius:9px;border:1px solid #E2E0DB;margin-bottom:14px;}
+.card-hd{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #F0EFEB;gap:10px;flex-wrap:wrap;}
+.card-ttl{font-size:12px;font-weight:700;}
+.legend{display:flex;gap:12px;font-size:10px;color:#666;align-items:center;flex-wrap:wrap;}
+.ldot{width:9px;height:9px;border-radius:2px;display:inline-block;flex-shrink:0;}
+.lline{width:16px;height:2px;display:inline-block;vertical-align:middle;flex-shrink:0;}
+.chart-wrap{padding:14px 16px;height:210px;position:relative;}
+
+/* ── Tables ── */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;font-size:11px;}
+thead th{background:#F5F4F0;color:#888;font-weight:700;padding:7px 10px;text-align:right;border-bottom:1.5px solid #E2E0DB;font-size:10px;white-space:nowrap;position:sticky;top:0;}
+thead th:first-child{text-align:left;}
+thead th.sticky-l{position:sticky;left:0;z-index:3;background:#F5F4F0;}
+tbody td{padding:6px 10px;text-align:right;border-bottom:1px solid #F0EEE9;vertical-align:top;}
+tbody td:first-child{text-align:left;}
+tbody td.sticky-l{position:sticky;left:0;background:#fff;z-index:2;}
+tr.grp-hd td{background:#F8F7F3!important;font-weight:700;font-size:11px;color:#444;padding:7px 10px;border-top:1.5px solid #DDD;border-bottom:1px solid #E8E8E2;}
+tr.grp-hd td.sticky-l{background:#F8F7F3!important;}
+tr.sub-ttl td{background:#F0EDE7!important;font-weight:700;border-top:1.5px solid #D5D2CB;border-bottom:1.5px solid #D5D2CB;font-size:11px;}
+tr.sub-ttl td.sticky-l{background:#F0EDE7!important;}
+tr.grand-ttl td{background:#E8E4DC!important;font-weight:700;font-size:12px;border-top:2px solid #C8C4BC;}
+tr.grand-ttl td.sticky-l{background:#E8E4DC!important;}
+tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl):hover td{background:#F5F4EF;}
+tr.act td{background:#FAFAF8;}
+tr.sim td.cell-sim{background:#EFF6FF;}
+tr.sim td:first-child{font-weight:600;}
+tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
+.bdg{display:inline-flex;align-items:center;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;vertical-align:middle;margin-left:3px;}
+.bdg-a{background:#EFEFEB;color:#666;}
+.bdg-s{background:#DBEAFE;color:#1D4ED8;}
+.bdg-o{background:#D1FAE5;color:#065F46;}  /* over */
+.bdg-u{background:#FEE2E2;color:#991B1B;}  /* under */
+.bdg-m{background:#FEF3C7;color:#92400E;}  /* mid */
+
+/* ── Group filter ── */
+.grp-filter{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.gf-btn{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid #E2E0DB;background:#fff;color:#888;font-family:inherit;transition:all .12s;white-space:nowrap;}
+.gf-btn:hover{border-color:#999;color:#333;}
+.gf-btn.on{color:#fff;border-color:transparent;}
+.gf-btn[data-g="all"].on{background:#111;}
+.gf-btn[data-g="online"].on{background:#2563EB;}
+.gf-btn[data-g="offline"].on{background:#7C3AED;}
+.gf-btn[data-g="ws"].on{background:#059669;}
+.ch-name{font-size:11px;font-weight:500;color:#222;}
+.ch-sub{font-size:10px;color:#aaa;display:block;margin-top:1px;}
+.cell-act{vertical-align:top;}
+.cell-act-v{font-size:12px;font-weight:700;color:#111;}
+.cell-act-meta{font-size:9px;color:#aaa;margin-top:2px;white-space:nowrap;}
+.cell-act-rate{}
+.cell-sim-in{width:90px;padding:3px 5px;font-size:11px;font-weight:700;text-align:right;border:1px solid #BFDBFE;border-radius:4px;background:#EFF6FF;color:#1E40AF;font-family:inherit;}
+.cell-sim-in:focus{outline:none;border-color:#2563EB;background:#fff;}
+.cell-goal{font-size:9px;color:#aaa;margin-top:2px;white-space:nowrap;}
+
+/* ── P&L specific ── */
+.ei{width:95px;padding:3px 5px;font-size:11px;font-weight:700;text-align:right;border:1px solid #BFDBFE;border-radius:4px;background:#EFF6FF;color:#1E40AF;font-family:inherit;}
+.ei:focus{outline:none;border-color:#2563EB;background:#fff;}
+
+/* ── Assumption panel ── */
+.ap{background:#fff;border-radius:9px;border:1px solid #E2E0DB;margin-bottom:14px;overflow:hidden;}
+.ap-hd{padding:12px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;}
+.ap-hd:hover{background:#FAFAF8;}
+.ap-ttl{font-size:11px;font-weight:700;}
+.ap-body{padding:14px 16px;border-top:1px solid #EFEFEB;display:none;}
+.ap-body.open{display:block;}
+.ap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.ap-sname{font-size:11px;font-weight:700;margin-bottom:8px;padding-bottom:5px;border-bottom:1.5px solid #E2E0DB;}
+.ap-sname.hn{color:#2563EB;border-color:#2563EB;}
+.ap-sname.ds{color:#7C3AED;border-color:#7C3AED;}
+.ap-sname.sg{color:#0891B2;border-color:#0891B2;}
+.ap-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:10px;}
+.ap-lbl{color:#777;}
+.ap-in{width:100px;padding:3px 5px;font-size:10px;text-align:right;border:1px solid #D4D2CD;border-radius:4px;background:#FAFAF8;color:#111;font-family:inherit;}
+.ap-in:focus{outline:none;border-color:#666;background:#fff;}
+
+/* ── Colors ── */
+.pos{color:#059669;font-weight:700;}.neg{color:#DC2626;font-weight:700;}.muted{color:#9CA3AF;}
+
+/* ── Footer note ── */
+.fn{font-size:10px;color:#aaa;line-height:1.9;padding:8px 2px;}
+.fn strong{color:#777;}
+
+/* ── VAT notice bar ── */
+.vat-bar{padding:6px 14px;font-size:10px;font-weight:600;border-radius:6px;margin-bottom:10px;display:inline-flex;align-items:center;gap:6px;}
+.vat-bar.incl{background:#D1FAE5;color:#065F46;}
+.vat-bar.excl{background:#F3F4F6;color:#6B7280;}
+
+@media(max-width:860px){
+  .kpis{grid-template-columns:repeat(3,1fr);}
+  .ap-grid{grid-template-columns:1fr 1fr;}
+  .nav{padding:0 12px;}
+  .tab,.vtab{padding:11px 10px;font-size:11px;}
+}
+@media(max-width:560px){
+  .kpis{grid-template-columns:repeat(2,1fr);}
+  .ap-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<header class="hd">
+  <div class="hd-l">
+    <div class="hd-brand">Glowny</div>
+    <div class="hd-title">경영 대시보드 2025 – 2026</div>
+  </div>
+  <div class="hd-r">
+    <button class="btn btn-vat" id="btnVat">
+      기준 <span class="vtag on" id="vatTag">+VAT</span>
+    </button>
+    <button class="btn btn-vat" id="btnDt" style="border:1px solid #D97706;">
+      해외/DT <span class="vtag on" id="dtTag">포함</span>
+    </button>
+    <button class="btn btn-ghost" id="btnReset">초기화</button>
+    <button class="btn btn-blue" id="btnExport">⬇ 저장</button>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="tab-g" id="yearTabs">
+    <div class="tab on" data-y="2026">2026년</div>
+    <div class="tab" data-y="2025">2025년</div>
+    <div class="tab" data-y="cmp">YoY 비교</div>
+  </div>
+  <div class="nav-sep"></div>
+  <div class="tab-g" id="viewTabs">
+    <div class="vtab on" data-v="ch">채널별 매출</div>
+    <div class="vtab" data-v="pl">매장 손익</div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="kpis" id="kpis"></div>
+  <div class="card" id="chartCard">
+    <div class="card-hd">
+      <span class="card-ttl" id="chartLbl">채널별 매출 현황</span>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-hd">
+      <span class="card-ttl" id="tblLbl">월별 채널 매출</span>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div class="grp-filter" id="grpFilter">
+          <button class="gf-btn on" data-g="all">전체</button>
+          <button class="gf-btn" data-g="online">온라인</button>
+          <button class="gf-btn" data-g="offline">오프라인</button>
+          <button class="gf-btn" data-g="ws">도매</button>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;font-size:10px;color:#aaa;flex-wrap:wrap;">
+          <span class="bdg bdg-a">확정</span>실적&nbsp;
+          <span class="bdg bdg-s">시뮬</span>시뮬레이션 (직접 수정)&nbsp;
+          <span class="bdg bdg-o">100%↑</span><span class="bdg bdg-m">80~100%</span><span class="bdg bdg-u">~80%</span>
+        </div>
+      </div>
+    </div>
+    <div class="tbl-wrap" id="tblWrap"></div>
+  </div>
+  <div class="ap" id="apPanel" style="display:none;">
+    <div class="ap-hd" id="apToggle">
+      <span class="ap-ttl">⚙ 매장 비용 가정 편집 <span style="font-size:10px;font-weight:400;color:#aaa;">— 손익 시뮬에 즉시 반영</span></span>
+      <span id="apArr">▼</span>
+    </div>
+    <div class="ap-body" id="apBody">
+      <div class="ap-grid" id="apContent"></div>
+    </div>
+  </div>
+  <div class="fn" id="fn"></div>
+</main>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONSTANTS
+// ══════════════════════════════════════════════
+const MO=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const VAT_R=1.1;
+const CLOSED_CH=4;  // KPI 파일 기준 1~4월 마감 (index 0~3)
+const CLOSED_PL=4;  // BEP 파일 기준 1~4월 확정 (index 0~3)
+
+// ══════════════════════════════════════════════
+//  CHANNEL DATA  ─ 모두 +VAT 기준, 원
+// ══════════════════════════════════════════════
+const n9=Array(9).fill(null);
+
+// 2026 monthly goals (+VAT)
+const G26={
+  cafe24:    [180e6,270e6,320e6,250e6,310e6,310e6,330e6,280e6,330e6,380e6,720e6,220e6],
+  mss:       [200e6,330e6,350e6,300e6,330e6,350e6,650e6,330e6,380e6,330e6,440e6,280e6],
+  cm29:      [250e6,330e6,350e6,430e6,520e6,600e6,460e6,440e6,630e6,660e6,550e6,280e6],
+  cafe24en:  [60e6,100e6,100e6,50e6,70e6,70e6,70e6,50e6,80e6,80e6,80e6,50e6],
+  mssglobal: [60e6,60e6,80e6,40e6,40e6,40e6,40e6,30e6,40e6,40e6,50e6,30e6],
+  misswu:    [0,0,0,0,0,0,0,0,0,0,0,0],
+  hannam:    [220e6,270e6,350e6,450e6,500e6,450e6,450e6,350e6,420e6,500e6,380e6,330e6],
+  dosan:     [170e6,200e6,230e6,320e6,400e6,350e6,360e6,280e6,340e6,400e6,310e6,260e6],
+  ssg:       [100e6,100e6,120e6,150e6,200e6,160e6,160e6,120e6,150e6,200e6,150e6,120e6],
+  popup:     [0,0,0,100e6,0,0,0,0,0,100e6,0,0],
+  ws_dom:    [42e6,42e6,42e6,50e6,69e6,65e6,65e6,65e6,65e6,65e6,65e6,65e6],
+  ws_glb:    [333e6,333e6,333e6,333e6,333e6,333e6,333e6,333e6,333e6,333e6,333e6,333e6],
+};
+
+// 2026 actuals 1~4월 마감 (+VAT, null=미마감)
+const n8=Array(8).fill(null);
+const A26={
+  cafe24:    [128935686,204595408,357780177,232657621,...n8],
+  mss:       [120932460,291253285,257321028,501981970,...n8],
+  cm29:      [147044306,343374445,376157639,478837460,...n8],
+  cafe24en:  [42995361, 29144375, 66105127, 29436580,...n8],
+  mssglobal: [28292475, 27324087, 42604367, 63793952,...n8],
+  misswu:    [0,        0,        143202600,116963400,...n8],
+  hannam:    [231079174,286376100,453010400,532601603,...n8],
+  dosan:     [131261403,233611700,330339519,406608578,...n8],
+  ssg:       [64949010, 106375800,130147680,125516000,...n8],
+  popup:     [0,        0,        0,        183947000,...n8],
+  ws_dom:    [20227691, 66813734, 27754810, 57193886,...n8],
+  ws_glb:    [0,        192402505,10413083, 76145520,...n8],
+};
+
+// 2025 actuals (+VAT)
+const A25={
+  cafe24:    [100797200,133239200,153814640,166466850,365524358,208305037,395082374,212081460,223367409,237122347,629541722,221166165],
+  mss:       [242433965,342548756,398332066,315853578,230665910,342625889,197697081,220613197,338763814,249115288,288234542,120263084],
+  cm29:      [242748743,269840776,402762074,294364229,172218489,247155208,222754127,250397284,217874534,218115593,257397631,135236225],
+  cafe24en:  [25886778,42926279,55821100,50051874,83210591,97046695,120032235,103126518,77283333,49721184,82171098,57884171],
+  mssglobal: [60067205,69778926,81431733,55285978,36360217,81473743,58761942,60217090,54820730,70629249,64481362,32188038],
+  misswu:    [16528800,43584800,214995000,68927400,206400,10127400,376800,16084800,20724000,0,0,171322200],
+  hannam:    [232959226,246516546,501514573,347022500,451342970,455483950,495289975,353024640,306947500,278503660,289405380,285090135],
+  dosan:     [0,0,0,0,0,0,0,0,74003700,216562740,198525020,201279720],
+  ssg:       [0,0,0,0,0,0,0,43577900,69213500,71673850,89047750,89137990],
+  popup:     [0,0,0,0,0,0,0,129659200,0,392477440,0,61413455],
+  ws_dom:    [36633801,34101875,80354799,29846063,27960284,41840320,56466701,55974581,138132672,57487000,23218672,23247931],
+  ws_glb:    [30773776,14654980,33440067,0,0,118256952,28470657,61060930,22561840,74972498,1525221,44019876],
+};
+
+// Channel definitions
+const CH_GROUPS=[
+  {id:'online',n:'온라인',chs:[
+    {k:'cafe24',    n:'CAFE24 (KR)',   sub:'실결제금액 기준'},
+    {k:'mss',       n:'MSS',           sub:'실결제금액 기준'},
+    {k:'cm29',      n:'29cm',          sub:'실결제금액 기준'},
+    {k:'cafe24en',  n:'CAFE24 (EN)',   sub:'글로벌'},
+    {k:'mssglobal', n:'MSS GLOBAL',    sub:'글로벌'},
+    {k:'misswu',    n:'MISS WU (CN)',  sub:'라이브커머스'},
+  ]},
+  {id:'offline',n:'오프라인',chs:[
+    {k:'hannam',n:'한남',  sub:'직영점'},
+    {k:'dosan', n:'도산',  sub:'직영점'},
+    {k:'ssg',   n:'SSG강남',sub:'입점'},
+    {k:'popup', n:'팝업',  sub:'국내'},
+  ]},
+  {id:'ws',n:'도매',chs:[
+    {k:'ws_dom',n:'국내 도매',sub:'Heights·EMPTY·PEER 등'},
+    {k:'ws_glb',n:'해외/DT 도매',sub:'글로벌 도매+DT'},
+  ]},
+];
+const ALL_CH_KEYS=CH_GROUPS.flatMap(g=>g.chs.map(c=>c.k));
+
+// ══════════════════════════════════════════════
+//  BEP / P&L DATA  ─ -VAT 기준, 원
+// ══════════════════════════════════════════════
+const STORES=[
+  {k:'hannam',n:'한남점',c:'#2563EB',bg:'#DBEAFE'},
+  {k:'dosan', n:'도산점', c:'#7C3AED',bg:'#EDE9FE'},
+  {k:'ssg',   n:'신세계강남',c:'#0891B2',bg:'#CFFAFE'},
+];
+
+// BEP 실적 -VAT
+const BR25={
+  hannam:[211781115,224105951,456243248,315475000,410311791,414076318,450263614,320931491,279043182,232771519,263095800,259172850],
+  dosan: [null,null,null,null,null,null,null,null,74003700,216562740,198525020,201279720],
+  ssg:   [null,null,null,null,null,null,null,43577900,69213500,71673850,89047750,89137990],
+};
+const BOI25={
+  hannam:[59416341,70299257,221549372,131749962,195688334,185117356,211432583,127262361,101623600,69622616,92512459,85486581],
+  dosan: [null,null,null,null,null,null,null,null,5577439,48003787,40025268,39873846],
+  ssg:   [null,null,null,null,null,null,null,5170848,10082620,15304293,20709893,19606054],
+};
+
+// BEP 2026 확정 1~4월 -VAT
+const BR26A={
+  hannam:[210071976,260341909,411827636,484183275,null,null,null,null,null,null,null,null],
+  dosan: [119328548,212374273,300308654,369644162,null,null,null,null,null,null,null,null],
+  ssg:   [59044555, 96705273, 118316073,114105455,null,null,null,null,null,null,null,null],
+};
+const BOI26A={
+  hannam:[66884506,101667538,214163227,271023130,null,null,null,null,null,null,null,null],
+  dosan: [11442307, 78087182,141208641,193949383,null,null,null,null,null,null,null,null],
+  ssg:   [14997274, 32123589, 36113190, 37482113,null,null,null,null,null,null,null,null],
+};
+
+// 2026 매장 목표 -VAT — G26 +VAT 값을 ÷VAT_R로 유도 (사업계획과 완전 일치)
+const BTGT26={
+  hannam: G26.hannam.map(v=>Math.round(v/VAT_R)),
+  dosan:  G26.dosan.map(v=>Math.round(v/VAT_R)),
+  ssg:    G26.ssg.map(v=>Math.round(v/VAT_R)),
+};
+
+const DEF_COSTS={
+  hannam:{rent:53175000,rentType:'fixed',labor:26837500,depr:12275000,misc:2000000,cogs:22.3,card:2.3},
+  dosan: {rent:50000000,rentType:'fixed',labor:19687500,depr:9140000, misc:1500000,cogs:22.3,card:2.3},
+  ssg:   {rent:28,      rentType:'pct',  labor:10845833,depr:3472222, misc:500000, cogs:22.3,card:2.3},
+};
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+function mkState(){
+  return{yr:'2026',view:'ch',vat:true,dt:true,grp:'all',ov:{},chOv:{},costs:JSON.parse(JSON.stringify(DEF_COSTS))};
+}
+function loadState(){
+  try{
+    const raw=window.__BS__||JSON.parse(localStorage.getItem('gd5')||'null');
+    if(raw) return{yr:'2026',view:'ch',vat:true,dt:true,grp:'all',
+      ov:raw.ov||{},chOv:raw.chOv||{},
+      costs:{
+        hannam:{...DEF_COSTS.hannam,...(raw.costs?.hannam||{})},
+        dosan: {...DEF_COSTS.dosan, ...(raw.costs?.dosan||{})},
+        ssg:   {...DEF_COSTS.ssg,   ...(raw.costs?.ssg||{})},
+      }};
+  }catch(e){}
+  return mkState();
+}
+let ST=loadState();
+function save(){try{localStorage.setItem('gd5',JSON.stringify({ov:ST.ov,chOv:ST.chOv,costs:ST.costs}));}catch(e){}}
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+const pi=s=>parseInt(String(s).replace(/[^0-9]/g,''))||0;
+const fi=n=>Math.round(n).toLocaleString('ko-KR');
+
+// Display value with VAT toggle
+// source: 'ch'=+VAT, 'bep'=-VAT, 'profit'=always -VAT
+function dv(n,src='ch'){
+  if(n===null||n===undefined||!isFinite(n)) return null;
+  if(src==='ch')   return ST.vat ? n : n/VAT_R;
+  if(src==='bep')  return ST.vat ? n*VAT_R : n;
+  return n; // profit: always as-is (-VAT)
+}
+
+function fm(n,src='ch'){
+  const v=dv(n,src);
+  if(v===null) return '—';
+  const a=Math.abs(v),s=v<0?'-':'';
+  if(a>=1e8) return s+(a/1e8).toFixed(1)+'억';
+  if(a>=1e4) return s+Math.round(a/1e4).toLocaleString()+'만';
+  return s+Math.round(a).toLocaleString();
+}
+function fw(n,src='ch'){
+  const v=dv(n,src);
+  if(v===null) return '—';
+  const a=Math.abs(v),s=v<0?'△':'';
+  if(a>=1e8) return s+(a/1e8).toFixed(1)+'억원';
+  if(a>=1e4) return s+Math.round(a/1e4).toLocaleString()+'만원';
+  return s+Math.round(a).toLocaleString()+'원';
+}
+function fp(n){if(n===null||!isFinite(n))return'—';return(n*100).toFixed(1)+'%';}
+function fdelta(a,b){if(!a||!b)return null;const d=(a-b)/Math.abs(b);return{v:d,s:(d>=0?'+':'')+(d*100).toFixed(1)+'%'};}
+
+function rateBdg(rate){
+  if(rate===null) return '';
+  const pct=(rate*100).toFixed(1);
+  const cls=rate>=1?'bdg-o':rate>=0.8?'bdg-m':'bdg-u';
+  return `<span class="bdg ${cls}">${pct}%</span>`;
+}
+
+// DT-aware goal/sim: ws_glb는 ST.dt=false일 때 목표·시뮬에서 제외
+function chGoalEff(k,i,yr){
+  if(k==='ws_glb'&&!ST.dt) return 0;
+  return chGoal(k,i,yr);
+}
+function chSimEff(k,i){
+  if(k==='ws_glb'&&!ST.dt) return 0;
+  return chSim(k,i);
+}
+// 집계용: 확정 실적은 항상 포함, 목표/시뮬은 DT 토글 반영
+function chDispEff(k,i,yr){
+  const act=chAct(k,i,yr);
+  if(act!==null) return act; // 확정 실적은 DT 무관 항상 포함
+  if(k==='ws_glb'&&!ST.dt) return 0;
+  return chSim(k,i);
+}
+// ── Channel revenue helpers
+function chAct(k,i,yr){
+  if(yr==='2025') return A25[k]?.[i]??null;
+  if(i<CLOSED_CH) return A26[k]?.[i]??null;
+  return null;
+}
+function chGoal(k,i,yr){
+  if(yr==='2025') return null;
+  return G26[k]?.[i]??0;
+}
+function chSim(k,i){ // override or goal default (+VAT)
+  return ST.chOv[k+'-'+i]??G26[k]?.[i]??0;
+}
+function chDisp(k,i,yr){ // value to display for that cell (+VAT internal)
+  if(yr==='2025') return A25[k]?.[i]??null;
+  if(i<CLOSED_CH) return A26[k]?.[i]??null;
+  return chSim(k,i);
+}
+
+// ── BEP/P&L helpers
+function bRev(k,i,yr){
+  if(yr==='2025') return BR25[k][i];
+  if(BR26A[k][i]!==null) return BR26A[k][i];
+  const ov=ST.ov[k+'-'+i];
+  return ov!==undefined?ov:(BTGT26[k]?.[i]??null);
+}
+function bOI(k,i,yr){
+  if(yr==='2025') return BOI25[k][i];
+  if(BOI26A[k][i]!==null) return BOI26A[k][i];
+  const r=bRev(k,i,yr);
+  if(!r) return null;
+  const c=ST.costs[k];
+  const gp=r*(1-c.cogs/100);
+  const rent=c.rentType==='pct'?r*(c.rent/100):c.rent;
+  return Math.round(gp-c.labor-(r*c.card/100)-rent-c.depr-c.misc);
+}
+function bIsAct(k,i,yr){
+  if(yr==='2025') return BR25[k][i]!==null;
+  return BR26A[k][i]!==null;
+}
+
+// ══════════════════════════════════════════════
+//  KPI CARDS
+// ══════════════════════════════════════════════
+// grp → 포함할 CH key 목록
+function filteredChKeys(){
+  if(ST.grp==='all') return ALL_CH_KEYS;
+  const grpMap={online:'online',offline:'offline',ws:'ws'};
+  const grp=CH_GROUPS.find(g=>g.id===ST.grp);
+  return grp?grp.chs.map(c=>c.k):ALL_CH_KEYS;
+}
+
+function renderKPIs(){
+  const yr=ST.yr==='cmp'?'2026':ST.yr;
+  const vw=ST.view;
+  let totCur=0,totGoal=0,totPY=0,mo=0;
+  const chKeys=filteredChKeys();
+
+  if(vw==='ch'){
+    for(let i=0;i<12;i++){
+      let mc=0,mg=0,mp=0;
+      chKeys.forEach(k=>{
+        const cv=chDispEff(k,i,yr);
+        const gv=chGoalEff(k,i,yr);
+        const pv=yr==='2026'?A25[k]?.[i]:null;
+        if(cv){mc+=cv;mo++;}
+        if(gv) mg+=gv;
+        if(pv) mp+=pv;
+      });
+      totCur+=mc;totGoal+=mg;totPY+=mp;
+    }
+  } else {
+    STORES.forEach(({k})=>{
+      for(let i=0;i<12;i++){
+        const r=bRev(k,i,yr);
+        if(r){totCur+=dv(r,'bep');mo++;}
+        const tg=BTGT26[k]?.[i];
+        if(tg) totGoal+=dv(tg,'bep');
+        const py=BR25[k][i];
+        if(py) totPY+=dv(py,'bep');
+      }
+    });
+  }
+  // YTD: 해당 연도 1~4월 확정 실적 합산 (그룹 필터 반영)
+  const ytdSrc=yr==='2025'?A25:A26;
+  const ytdAct=chKeys.reduce((s,k)=>{
+    for(let i=0;i<CLOSED_CH;i++) s+=(ytdSrc[k]?.[i]??0);
+    return s;
+  },0);
+  const ytdGoal=yr==='2026'?chKeys.reduce((s,k)=>{
+    for(let i=0;i<CLOSED_CH;i++) s+=(chGoalEff(k,i,'2026')??0);
+    return s;
+  },0):null;
+  const ytdRate=ytdGoal&&ytdGoal>0?ytdAct/ytdGoal:null;
+  const ytdLbl=yr==='2025'?'2025년 1~4월 누계':'1~4월 누계';
+  const dR=totPY>0?fdelta(totCur,totPY):null;
+  const vatLbl=ST.vat?'(+VAT)':'(-VAT)';
+  const dtNote=!ST.dt?'<span style="font-size:9px;background:#FEF3C7;color:#92400E;padding:1px 5px;border-radius:3px;margin-left:4px;">DT 제외</span>':'';
+  const grpLblMap={all:'전체',online:'온라인',offline:'오프라인',ws:'도매'};
+  const grpLbl=vw==='ch'&&ST.grp!=='all'?` · ${grpLblMap[ST.grp]}`:'';
+
+  document.getElementById('kpis').innerHTML=`
+    <div class="kpi">
+      <div class="kpi-lbl">연간 목표 ${vatLbl}${dtNote}</div>
+      <div class="kpi-val">${fm(totGoal)}</div>
+      <div class="kpi-sub">${yr}년${grpLbl}${!ST.dt?' (DT 제외)':''}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">YTD 실적 ${vatLbl} <span style="font-size:9px;color:#aaa;">(${ytdLbl})</span></div>
+      <div class="kpi-val" style="color:#2563EB;">${fm(ytdAct,'ch')}</div>
+      <div class="kpi-sub">${ytdRate!==null?'목표 대비 달성률':'전년 실적 기준'}</div>
+      <div class="kpi-dy ${ytdRate!==null?(ytdRate>=1?'up':'dn'):'up'}">${ytdRate!==null?fp(ytdRate):'—'}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">연간 시뮬 합계</div>
+      <div class="kpi-val">${fm(totCur)}</div>
+      <div class="kpi-sub">실적+시뮬${!ST.dt?' (DT 제외)':''}</div>
+      ${dR?`<div class="kpi-dy ${dR.v>=0?'up':'dn'}">YoY ${dR.s}</div>`:''}
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">목표 달성률 (연간)</div>
+      <div class="kpi-val ${totGoal>0&&totCur/totGoal>=1?'pos':''}">${totGoal>0?fp(totCur/totGoal):'—'}</div>
+      <div class="kpi-sub">시뮬 포함 기준</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">YoY 성장률</div>
+      <div class="kpi-val ${dR?(dR.v>=0?'pos':'neg'):'muted'}">${dR?dR.s:'—'}</div>
+      <div class="kpi-sub">전년 동기 대비</div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════
+//  CHART
+// ══════════════════════════════════════════════
+let chartInst=null;
+function renderChart(){
+  const yr=ST.yr,vw=ST.view;
+  let ds=[];
+  const colors=['#2563EB','#7C3AED','#0891B2','#059669','#D97706','#DC2626','#6366F1','#EC4899','#14B8A6','#F59E0B','#8B5CF6','#06B6D4'];
+
+  if(yr==='cmp'){
+    const mk=(y,color,fill)=>({type:'line',
+      data:MO.map((_,i)=>dv(ALL_CH_KEYS.reduce((s,k)=>{const v=chDisp(k,i,y);return s+(v||0);},0),'ch')/1e6),
+      borderColor:color,backgroundColor:fill?color+'18':'transparent',
+      borderWidth:2.5,pointRadius:3,tension:.35,spanGaps:true,fill:fill,label:y+'년',
+    });
+    ds=[mk('2025','#9CA3AF',false),mk('2026','#2563EB',true)];
+    document.getElementById('legend').innerHTML=
+      `<div style="display:flex;align-items:center;gap:4px;"><div class="lline" style="background:#9CA3AF;"></div><span>2025년</span></div>
+       <div style="display:flex;align-items:center;gap:4px;"><div class="lline" style="background:#2563EB;"></div><span>2026년</span></div>`;
+  } else if(vw==='ch'){
+    const allGroups=[
+      {id:'online', label:'온라인', keys:['cafe24','mss','cm29','cafe24en','mssglobal','misswu'],c:'#2563EB',bg:'#DBEAFE'},
+      {id:'offline',label:'오프라인',keys:['hannam','dosan','ssg','popup'],c:'#7C3AED',bg:'#EDE9FE'},
+      {id:'ws',     label:`도매${!ST.dt?' (DT제외)':''}`,keys:['ws_dom','ws_glb'],c:'#059669',bg:'#D1FAE5'},
+    ];
+    const visGroups=ST.grp==='all'?allGroups:allGroups.filter(g=>g.id===ST.grp);
+    const visKeys=filteredChKeys();
+
+    if(ST.grp!=='all'){
+      // 단일 그룹: 채널별 개별 막대
+      const grp=visGroups[0];
+      const chColors=['#1D4ED8','#4F46E5','#0891B2','#059669','#D97706','#DC2626'];
+      const chDefs=CH_GROUPS.find(g=>g.id===ST.grp)?.chs||[];
+      chDefs.forEach(({k,n},ci)=>{
+        ds.push({type:'bar',label:n,stack:'s',
+          data:MO.map((_,i)=>dv(chDispEff(k,i,yr)||0,'ch')/1e6),
+          backgroundColor:chColors[ci]+'33',borderColor:chColors[ci],borderWidth:1});
+      });
+    } else {
+      visGroups.forEach(g=>{
+        ds.push({type:'bar',label:g.label,stack:'s',
+          data:MO.map((_,i)=>dv(g.keys.reduce((s,k)=>{const v=chDispEff(k,i,yr);return s+(v||0);},0),'ch')/1e6),
+          backgroundColor:g.bg,borderColor:g.c,borderWidth:1});
+      });
+    }
+    // goal line (그룹 필터 반영)
+    ds.push({type:'line',label:`목표${!ST.dt?' (DT제외)':''}`,
+      data:MO.map((_,i)=>dv(visKeys.reduce((s,k)=>s+(chGoalEff(k,i,yr)||0),0),'ch')/1e6),
+      borderColor:'#DC2626',backgroundColor:'transparent',borderWidth:1.5,
+      borderDash:[4,3],pointRadius:2,tension:.3,spanGaps:true,fill:false});
+
+    if(ST.grp!=='all'){
+      const chDefs=CH_GROUPS.find(g=>g.id===ST.grp)?.chs||[];
+      const chColors=['#1D4ED8','#4F46E5','#0891B2','#059669','#D97706','#DC2626'];
+      document.getElementById('legend').innerHTML=
+        chDefs.map(({n},ci)=>`<div style="display:flex;align-items:center;gap:4px;"><div class="ldot" style="background:${chColors[ci]}33;border:1px solid ${chColors[ci]};"></div><span>${n}</span></div>`).join('')+
+        `<div style="display:flex;align-items:center;gap:4px;"><div class="lline" style="background:#DC2626;height:1px;border-top:2px dashed #DC2626;"></div><span style="color:#DC2626;">목표</span></div>`;
+    } else {
+      document.getElementById('legend').innerHTML=
+        visGroups.map(g=>`<div style="display:flex;align-items:center;gap:4px;"><div class="ldot" style="background:${g.bg};border:1px solid ${g.c};"></div><span>${g.label}</span></div>`).join('')+
+        `<div style="display:flex;align-items:center;gap:4px;"><div class="lline" style="background:#DC2626;height:1px;border-top:2px dashed #DC2626;"></div><span style="color:#DC2626;">목표${!ST.dt?' (DT제외)':''}</span></div>`;
+    }
+  } else {
+    // P&L chart
+    STORES.forEach(({k,n,c,bg},idx)=>{
+      ds.push({type:'bar',label:n,stack:'s',
+        data:MO.map((_,i)=>{const r=bRev(k,i,yr);return r?dv(r,'bep')/1e6:0;}),
+        backgroundColor:bg,borderColor:c,borderWidth:1});
+    });
+    const oiData=MO.map((_,i)=>{
+      let o=0;
+      STORES.forEach(({k})=>{const ov=bOI(k,i,yr);if(ov)o+=ov;});
+      return o/1e6;
+    });
+    ds.push({type:'line',label:'영업이익',data:oiData,
+      borderColor:'#059669',backgroundColor:'rgba(5,150,105,.08)',
+      borderWidth:2,pointRadius:3,tension:.35,spanGaps:true,fill:false});
+    document.getElementById('legend').innerHTML=
+      STORES.map(({n,c,bg})=>`<div style="display:flex;align-items:center;gap:4px;"><div class="ldot" style="background:${bg};border:1px solid ${c};"></div><span>${n}</span></div>`).join('')+
+      `<div style="display:flex;align-items:center;gap:4px;"><div class="lline" style="background:#059669;"></div><span style="color:#059669;font-weight:700;">영업이익</span></div>`;
+  }
+
+  const ctx=document.getElementById('chart').getContext('2d');
+  if(chartInst){chartInst.destroy();chartInst=null;}
+  chartInst=new Chart(ctx,{
+    data:{labels:MO,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{callbacks:{
+        label:c=>`${c.dataset.label}: ${c.parsed.y!==null?(c.parsed.y.toFixed(0)+'백만'):'—'}`
+      }}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10}}},
+        y:{grid:{color:'#F0EFEB'},ticks:{font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'억':v+'M'}},
+      },
+    },
+  });
+}
+
+// ══════════════════════════════════════════════
+//  CHANNEL TABLE
+// ══════════════════════════════════════════════
+function renderChTable(){
+  const yr=ST.yr;
+  const isCmp=yr==='cmp';
+  const yr2=isCmp?'2026':yr;
+
+  // 그룹 필터 적용
+  const visGroups=ST.grp==='all'?CH_GROUPS:CH_GROUPS.filter(g=>g.id===ST.grp);
+  const visKeys=filteredChKeys();
+  const grpLblMap={all:'전체',online:'온라인',offline:'오프라인',ws:'도매'};
+
+  // Build header
+  let th=`<thead><tr>
+    <th class="sticky-l" style="text-align:left;min-width:120px;z-index:4;">채널</th>
+    <th style="min-width:70px;">연간 목표</th>
+    <th style="min-width:60px;">YTD실적</th>
+    <th style="min-width:55px;">달성률</th>`;
+  MO.forEach((m,i)=>{ th+=`<th style="min-width:${i<CLOSED_CH?'90px':'82px'}">${m}${i<CLOSED_CH&&yr2==='2026'?'<span class="bdg bdg-a" style="margin-left:3px;">확</span>':''}</th>`; });
+  th+=`</tr></thead>`;
+
+  let tb='<tbody>';
+  let grandGoal=0,grandAct=0,grandYTD=0;
+
+  visGroups.forEach(grp=>{
+    // 소계 집계는 DT-aware 버전으로
+    let grpGoal=0,grpYTD=0;
+    const grpMoEff=Array(12).fill(0);   // DT 반영한 월별 합
+    const grpGoalMoEff=Array(12).fill(0);
+
+    // Group header
+    tb+=`<tr class="grp-hd"><td class="sticky-l" colspan="4">${grp.n}</td>${MO.map(()=>'<td></td>').join('')}</tr>`;
+
+    grp.chs.forEach(ch=>{
+      const isDT=ch.k==='ws_glb';
+      const dtExcl=isDT&&!ST.dt; // 이 행이 집계 제외 상태인지
+
+      const annGoal=dtExcl?0:(G26[ch.k]?.reduce((s,v)=>s+v,0)||0);
+      const ytdAct=yr2==='2026'?Array.from({length:CLOSED_CH},(_,i)=>A26[ch.k]?.[i]||0).reduce((s,v)=>s+v,0):0;
+      const ytdGoalCh=yr2==='2026'?Array.from({length:CLOSED_CH},(_,i)=>chGoalEff(ch.k,i,'2026')||0).reduce((s,v)=>s+v,0):0;
+      const rate=ytdGoalCh>0?ytdAct/ytdGoalCh:null;
+
+      if(!dtExcl){grpGoal+=dtExcl?0:annGoal;grpYTD+=ytdAct;}
+
+      let annActEff=0;
+      for(let i=0;i<12;i++){
+        const v=chDispEff(ch.k,i,yr2);
+        if(v&&!dtExcl){annActEff+=v;grpMoEff[i]+=(v||0);}
+        else if(v&&dtExcl){/* ws_glb 제외 모드: 실적도 소계에서 제외 */}
+        if(!dtExcl) grpGoalMoEff[i]+=(chGoalEff(ch.k,i,yr2)||0);
+        // 행 표시용(DT 제외여도 행 자체는 표시)
+        grpMoEff[i]; // no-op, just for clarity
+      }
+      if(!dtExcl) grandAct+=annActEff;
+
+      // 행 배경: ws_glb 제외 상태면 흐리게
+      const rowStyle=dtExcl?'opacity:0.45;':'';
+      const dtBadge=isDT?`<span class="bdg" style="background:${ST.dt?'#D1FAE5':'#FEF3C7'};color:${ST.dt?'#065F46':'#92400E'};margin-left:4px;">${ST.dt?'합산포함':'합산제외'}</span>`:'';
+      const actRow=yr2==='2026'?'sim':'act';
+
+      tb+=`<tr class="${actRow}" style="${rowStyle}">
+        <td class="sticky-l cell-act">
+          <span class="ch-name">${ch.n}${dtBadge}</span>
+          <span class="ch-sub">${ch.sub}</span>
+        </td>
+        <td>${yr2==='2026'?fm(G26[ch.k]?.reduce((s,v)=>s+v,0)||0,'ch'):'—'}</td>
+        <td style="color:#2563EB;font-weight:700;">${yr2==='2026'?fm(ytdAct,'ch'):'—'}</td>
+        <td>${yr2==='2026'?rateBdg(rate):'—'}</td>`;
+
+      for(let i=0;i<12;i++){
+        const act=chAct(ch.k,i,yr2);
+        const goal=G26[ch.k]?.[i]||0;   // 행 자체는 원본 목표 표시
+        const isActMonth=i<CLOSED_CH&&yr2==='2026';
+
+        if(yr2==='2025'){
+          const v=A25[ch.k]?.[i];
+          tb+=`<td class="cell-act">${v?`<div class="cell-act-v">${fm(v,'ch')}</div>`:'<span class="muted">—</span>'}</td>`;
+        } else if(isActMonth){
+          const r=goal>0?act/goal:null;
+          const actDisp=act!==null?fm(act,'ch'):'—';
+          const goalDisp=goal?`<div class="cell-goal">목 ${fm(goal,'ch')} ${r!==null?rateBdg(r):''}</div>`:'';
+          tb+=`<td class="cell-act"><div class="cell-act-v">${actDisp}</div>${goalDisp}</td>`;
+        } else {
+          const simVal=chSim(ch.k,i);   // 내부 저장값은 항상 +VAT
+          const simDisp=ST.vat?simVal:Math.round(simVal/VAT_R); // 표시값은 토글 반영
+          const goalDisp=goal?`<div class="cell-goal">목 ${fm(goal,'ch')}</div>`:'';
+          if(ch.k==='misswu'||goal===0){
+            tb+=`<td class="cell-sim"><span class="muted" style="font-size:10px;">—</span></td>`;
+          } else {
+            tb+=`<td class="cell-sim"><input class="cell-sim-in" type="text" inputmode="numeric"
+              data-k="${ch.k}-${i}" data-ck="${ch.k}" data-ci="${i}"
+              title="${ST.vat?'+VAT 입력':'-VAT 입력 (저장 시 ×1.1 자동 변환)'}"
+              value="${fi(simDisp)}">${goalDisp}</td>`;
+          }
+        }
+      }
+      tb+='</tr>';
+    });
+
+    // Sub-total row (DT-aware)
+    const stYTDGoal=Array.from({length:CLOSED_CH},(_,i)=>grp.chs.reduce((s,c)=>s+(chGoalEff(c.k,i,yr2)||0),0)).reduce((s,v)=>s+v,0);
+    const stRate=grpYTD>0&&stYTDGoal>0?grpYTD/stYTDGoal:null;
+    tb+=`<tr class="sub-ttl">
+      <td class="sticky-l">소계 — ${grp.n}${grp.id==='ws'&&!ST.dt?' <span style="font-size:9px;color:#92400E;">(DT 제외)</span>':''}</td>
+      <td>${fm(grpGoal,'ch')}</td>
+      <td style="color:#2563EB;">${fm(grpYTD,'ch')}</td>
+      <td>${rateBdg(stRate)}</td>`;
+    for(let i=0;i<12;i++){
+      // 소계는 DT-aware 집계
+      const effVal=grp.chs.reduce((s,c)=>{
+        if(c.k==='ws_glb'&&!ST.dt){
+          // 확정 실적도 제외
+          return s;
+        }
+        return s+(chDispEff(c.k,i,yr2)||0);
+      },0);
+      const effGoal=grpGoalMoEff[i];
+      const isAct=i<CLOSED_CH&&yr2==='2026';
+      if(isAct) tb+=`<td style="font-weight:700;">${fm(effVal,'ch')}${effGoal?`<div class="cell-goal">목 ${fm(effGoal,'ch')} ${rateBdg(effVal/effGoal)}</div>`:''}</td>`;
+      else tb+=`<td style="font-weight:700;">${fm(effVal,'ch')}</td>`;
+    }
+    tb+='</tr>';
+    grandGoal+=grpGoal;grandYTD+=grpYTD;
+  });
+
+  // Grand total (그룹 필터 + DT-aware)
+  const grandYTDGoal=Array.from({length:CLOSED_CH},(_,i)=>visKeys.reduce((s,k)=>s+(chGoalEff(k,i,'2026')||0),0)).reduce((s,v)=>s+v,0);
+  const grandRate=grandYTD>0&&grandYTDGoal>0?grandYTD/grandYTDGoal:null;
+  const dtNote=!ST.dt?' <span style="font-size:10px;background:#FEF3C7;color:#92400E;padding:1px 6px;border-radius:3px;">DT 제외</span>':'';
+  const grpTtl=ST.grp==='all'?'Grand Total':grpLblMap[ST.grp]+' 합계';
+  tb+=`<tr class="grand-ttl">
+    <td class="sticky-l" style="font-size:12px;">${grpTtl}${dtNote}</td>
+    <td style="color:#111;">${fm(grandGoal,'ch')}</td>
+    <td style="color:#2563EB;">${fm(grandYTD,'ch')}</td>
+    <td>${rateBdg(grandRate)}</td>`;
+  for(let i=0;i<12;i++){
+    const v=visKeys.reduce((s,k)=>s+(chDispEff(k,i,yr2)||0),0);
+    const g=visKeys.reduce((s,k)=>s+(chGoalEff(k,i,yr2)||0),0);
+    const isAct=i<CLOSED_CH&&yr2==='2026';
+    tb+=`<td style="font-weight:700;">${fm(v,'ch')}${isAct&&g?`<div class="cell-goal">목 ${fm(g,'ch')} ${rateBdg(v/g)}</div>`:''}</td>`;
+  }
+  tb+='</tr></tbody>';
+
+  document.getElementById('tblWrap').innerHTML=`<table>${th}${tb}</table>`;
+  attachChInputs();
+}
+
+function attachChInputs(){
+  document.querySelectorAll('.cell-sim-in').forEach(el=>{
+    el.addEventListener('focus',e=>{
+      const raw=pi(e.target.value);
+      e.target.value=raw>0?raw.toString():'';
+      e.target.select();
+    });
+    el.addEventListener('blur',e=>{
+      const raw=pi(e.target.value);
+      // 저장은 항상 +VAT 기준 — -VAT 모드로 입력된 경우 ×1.1 변환
+      ST.chOv[el.dataset.k]=ST.vat ? raw : Math.round(raw*VAT_R);
+      save();renderKPIs();renderChart();
+      renderChTable();
+    });
+    el.addEventListener('input',e=>{
+      const pos=e.target.selectionStart;
+      const before=e.target.value.slice(0,pos).replace(/[^0-9]/g,'').length;
+      const raw=pi(e.target.value);
+      if(raw>0){
+        const f=fi(raw);e.target.value=f;
+        let c=0,cnt=0;
+        while(c<f.length&&cnt<before){if(/[0-9]/.test(f[c]))cnt++;c++;}
+        try{e.target.setSelectionRange(c,c);}catch(x){}
+      }
+    });
+  });
+}
+
+// ══════════════════════════════════════════════
+//  P&L TABLE
+// ══════════════════════════════════════════════
+function renderPLTable(){
+  const yr=ST.yr,isCmp=yr==='cmp';
+  if(isCmp){renderCmpTable();return;}
+
+  let th=`<thead><tr>
+    <th class="sticky-l" style="text-align:left;">월</th>`;
+  STORES.forEach(({n,c})=>th+=`<th style="color:${c};">${n}${ST.vat?'<br><span style="color:#ccc;font-weight:400;font-size:9px;">+VAT</span>':''}</th>`);
+  th+=`<th>합계매출</th><th>목표</th><th>달성률</th><th>영업이익</th><th>이익률</th></tr></thead>`;
+
+  let tb='<tbody>';
+  let tR=0,tOI=0,tTg=0;
+
+  for(let i=0;i<12;i++){
+    let rowR=0,rowOI=0,rowTg=0,hasData=false;
+    STORES.forEach(({k})=>{
+      const r=bRev(k,i,yr),o=bOI(k,i,yr);
+      if(r){rowR+=r;hasData=true;}
+      if(o) rowOI+=o;
+      rowTg+=(BTGT26[k]?.[i]||0);
+    });
+    if(!hasData&&yr==='2026'){
+      // show sim
+    } else if(!hasData){
+      tb+=`<tr><td class="sticky-l">${MO[i]}</td><td colspan="9" class="muted" style="text-align:center;">—</td></tr>`;
+      continue;
+    }
+    tR+=rowR;tOI+=rowOI;tTg+=rowTg;
+    const act=STORES.every(({k})=>bIsAct(k,i,yr));
+    const rc=act?'act':'sim';
+    const oc=rowOI>=0?'#059669':'#DC2626';
+    const rate=rowTg>0?rowR/rowTg:null;
+
+    tb+=`<tr class="${rc}">
+      <td class="sticky-l">${MO[i]}<span class="bdg ${act?'bdg-a':'bdg-s'}">${act?'확정':'시뮬'}</span></td>`;
+    STORES.forEach(({k})=>{
+      const r=bRev(k,i,yr);
+      const isA=bIsAct(k,i,yr);
+      if(!isA&&yr==='2026'){
+        const ov=ST.ov[k+'-'+i];
+        const rawVal=ov??BTGT26[k]?.[i]??0;  // 내부 저장값은 항상 -VAT
+        const dispVal=ST.vat?Math.round(rawVal*VAT_R):rawVal; // 표시는 토글 반영
+        tb+=`<td class="cell-sim"><input class="ei" type="text" inputmode="numeric"
+          data-k="${k}-${i}"
+          title="${ST.vat?'+VAT 입력 (저장 시 ÷1.1 자동 변환)':'-VAT 입력'}"
+          value="${fi(dispVal)}"></td>`;
+      } else {
+        tb+=`<td>${r?fm(r,'bep'):'—'}</td>`;
+      }
+    });
+    tb+=`<td style="font-weight:700;">${fm(rowR,'bep')}</td>
+      <td class="muted">${fm(rowTg,'bep')}</td>
+      <td>${rateBdg(rate)}</td>
+      <td style="color:${oc};font-weight:700;">${fm(rowOI,'profit')}</td>
+      <td style="color:${oc};">${rowR>0?fp(rowOI/rowR):'—'}</td>
+    </tr>`;
+  }
+
+  const tm=tR>0?tOI/tR:0;
+  const toc=tOI>=0?'#059669':'#DC2626';
+  tb+=`<tr class="sub-ttl">
+    <td class="sticky-l">연간 합계</td>
+    ${STORES.map(({k})=>`<td>${fm(STORES.reduce((s)=>s,0),'bep')}</td>`).join('')}
+    <td style="font-weight:700;">${fm(tR,'bep')}</td>
+    <td class="muted">${fm(tTg,'bep')}</td>
+    <td>${rateBdg(tTg>0?tR/tTg:null)}</td>
+    <td style="color:${toc};">${fm(tOI,'profit')}</td>
+    <td style="color:${toc};">${fp(tm)}</td>
+  </tr></tbody>`;
+
+  document.getElementById('tblWrap').innerHTML=`<table>${th}${tb}</table>`;
+  attachPLInputs();
+}
+
+function renderCmpTable(){
+  let th=`<thead><tr>
+    <th class="sticky-l" style="text-align:left;">월</th>
+    <th style="color:#9CA3AF;">2025 매출</th>
+    <th style="color:#2563EB;">2026 매출</th>
+    <th>YoY</th>
+    <th>목표</th>
+    <th>달성률</th>
+    <th>영업이익 '25</th>
+    <th>영업이익 '26</th>
+    <th>OI YoY</th>
+  </tr></thead>`;
+  let tb='<tbody>';
+  let tR25=0,tR26=0,tO25=0,tO26=0,tTg=0;
+  for(let i=0;i<12;i++){
+    let r25=0,r26=0,o25=0,o26=0,tg=0,any=false;
+    STORES.forEach(({k})=>{
+      const v25=bRev(k,i,'2025'),v26=bRev(k,i,'2026');
+      const oi25=bOI(k,i,'2025'),oi26=bOI(k,i,'2026');
+      if(v25){r25+=v25;any=true;}
+      if(v26) r26+=v26;
+      if(oi25) o25+=oi25;
+      if(oi26) o26+=oi26;
+      tg+=(BTGT26[k]?.[i]||0);
+    });
+    if(!any)continue;
+    tR25+=r25;tR26+=r26;tO25+=o25;tO26+=o26;tTg+=tg;
+    const ry=r25&&r26?fdelta(r26,r25):null;
+    const oy=o25&&o26?fdelta(o26,o25):null;
+    const rate=tg>0?r26/tg:null;
+    const o26c=o26>=0?'#059669':'#DC2626';
+    tb+=`<tr>
+      <td class="sticky-l">${MO[i]}</td>
+      <td class="muted">${r25?fm(r25,'bep'):'—'}</td>
+      <td style="color:#2563EB;font-weight:700;">${r26?fm(r26,'bep'):'—'}</td>
+      <td class="${ry?(ry.v>=0?'pos':'neg'):'muted'}">${ry?ry.s:'—'}</td>
+      <td class="muted">${tg?fm(tg,'bep'):'—'}</td>
+      <td>${rateBdg(rate)}</td>
+      <td class="muted">${o25?fm(o25,'profit'):'—'}</td>
+      <td style="color:${o26c};font-weight:700;">${o26!==null?fm(o26,'profit'):'—'}</td>
+      <td class="${oy?(oy.v>=0?'pos':'neg'):'muted'}">${oy?oy.s:'—'}</td>
+    </tr>`;
+  }
+  const dR=tR25?fdelta(tR26,tR25):null;
+  const dO=tO25?fdelta(tO26,tO25):null;
+  tb+=`<tr class="grand-ttl">
+    <td class="sticky-l">연간 합계</td>
+    <td>${fm(tR25,'bep')}</td>
+    <td style="color:#2563EB;">${fm(tR26,'bep')}</td>
+    <td class="${dR?(dR.v>=0?'pos':'neg'):'muted'}">${dR?dR.s:'—'}</td>
+    <td class="muted">${fm(tTg,'bep')}</td>
+    <td>${rateBdg(tTg>0?tR26/tTg:null)}</td>
+    <td>${fm(tO25,'profit')}</td>
+    <td style="color:${tO26>=0?'#059669':'#DC2626'};">${fm(tO26,'profit')}</td>
+    <td class="${dO?(dO.v>=0?'pos':'neg'):'muted'}">${dO?dO.s:'—'}</td>
+  </tr></tbody>`;
+  document.getElementById('tblWrap').innerHTML=`<table>${th}${tb}</table>`;
+}
+
+function attachPLInputs(){
+  document.querySelectorAll('.ei').forEach(el=>{
+    el.addEventListener('focus',e=>{e.target.value=pi(e.target.value).toString();e.target.select();});
+    el.addEventListener('blur',e=>{
+      const raw=pi(e.target.value);
+      // 저장은 항상 -VAT 기준 — +VAT 모드로 입력된 경우 ÷1.1 변환
+      ST.ov[el.dataset.k]=ST.vat ? Math.round(raw/VAT_R) : raw;
+      save();render();
+    });
+    el.addEventListener('input',e=>{
+      const pos=e.target.selectionStart;
+      const before=e.target.value.slice(0,pos).replace(/[^0-9]/g,'').length;
+      const raw=pi(e.target.value);
+      if(raw>0){const f=fi(raw);e.target.value=f;
+        let c=0,cnt=0;while(c<f.length&&cnt<before){if(/[0-9]/.test(f[c]))cnt++;c++;}
+        try{e.target.setSelectionRange(c,c);}catch(x){}
+      }
+    });
+  });
+}
+
+// ══════════════════════════════════════════════
+//  ASSUMPTION PANEL
+// ══════════════════════════════════════════════
+function renderAssump(){
+  const show=ST.view==='pl'&&(ST.yr==='2026'||ST.yr==='cmp');
+  document.getElementById('apPanel').style.display=show?'':'none';
+  if(!show) return;
+  const sts=[{k:'hannam',n:'한남점',cls:'hn'},{k:'dosan',n:'도산점',cls:'ds'},{k:'ssg',n:'신세계강남',cls:'sg'}];
+  let h='';
+  sts.forEach(({k,n,cls})=>{
+    const c=ST.costs[k];
+    h+=`<div><div class="ap-sname ${cls}">${n}</div>`;
+    const rows=c.rentType==='fixed'?[['임차료 (원/월)','rent']]:[ ['임차율 (매출연동%)','rent']];
+    rows.push(['인건비 (원/월)','labor'],['인테리어감가 (원/월)','depr'],['기타운영비 (원/월)','misc'],['매출원가율 (%)','cogs'],['카드수수료 (%)','card']);
+    rows.forEach(([lb,f])=>{
+      h+=`<div class="ap-row"><span class="ap-lbl">${lb}</span>
+        <input class="ap-in" type="text" inputmode="numeric" data-s="${k}" data-f="${f}" value="${fi(c[f])}">
+      </div>`;
+    });
+    h+='</div>';
+  });
+  document.getElementById('apContent').innerHTML=h;
+  document.querySelectorAll('.ap-in').forEach(el=>{
+    el.addEventListener('focus',e=>{e.target.value=parseFloat(e.target.value.replace(/,/g,'')).toString();e.target.select();});
+    el.addEventListener('blur',e=>{
+      ST.costs[el.dataset.s][el.dataset.f]=parseFloat(e.target.value.replace(/,/g,''))||0;
+      save();render();
+    });
+  });
+}
+
+// ══════════════════════════════════════════════
+//  FOOTNOTE
+// ══════════════════════════════════════════════
+function renderFn(){
+  const vatNote=ST.vat?'<strong>현재 +VAT 기준</strong> 표시':'<strong>현재 -VAT 기준</strong> 표시';
+  const dtNote=ST.dt?'해외/DT 도매 목표 <strong>포함</strong>':'해외/DT 도매 목표 <strong style="color:#92400E;">제외</strong> (확정 실적은 표시되나 합산에서 제외)';
+  const notes={
+    '2026':`* <strong>채널 매출</strong>: 1~4월 확정 실적 / 5~12월 시뮬레이션 (사업계획 파일 기준) · ${vatNote}<br>
+     * <strong>매장 손익</strong>: 1~4월 확정 실적 (BEP 파일 기준) / 5~12월 시뮬 · 시뮬 입력은 항상 +VAT 기준<br>
+     * ${dtNote}`,
+    '2025':'* 2025년 전체 실적 (사업계획 파일 기준, +VAT 원본)<br>* 도산 9월 개점 · SSG강남 8월 개점 · 잠실 6월 폐점',
+    'cmp': `* 2025 실적 vs 2026 시뮬레이션 비교 · 채널 뷰: 사업계획 기준 / 손익 뷰: BEP 기준 · ${vatNote}`,
+  };
+  document.getElementById('fn').innerHTML=notes[ST.yr]||'';
+}
+
+// ══════════════════════════════════════════════
+//  MAIN RENDER
+// ══════════════════════════════════════════════
+function render(){
+  // VAT button
+  const vatTag=document.getElementById('vatTag');
+  const btnVat=document.getElementById('btnVat');
+  if(ST.vat){vatTag.textContent='+VAT';vatTag.className='vtag on';btnVat.classList.remove('excl');}
+  else{vatTag.textContent='-VAT';vatTag.className='vtag off';btnVat.classList.add('excl');}
+
+  // DT button
+  const dtTag=document.getElementById('dtTag');
+  const btnDt=document.getElementById('btnDt');
+  if(ST.dt){
+    dtTag.textContent='포함';dtTag.className='vtag on';
+    btnDt.style.borderColor='#D97706';dtTag.style.background='#10B981';
+  } else {
+    dtTag.textContent='제외';dtTag.className='vtag off';
+    btnDt.style.borderColor='#DC2626';dtTag.style.background='#DC2626';
+  }
+
+  // Year & view tabs
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.y===ST.yr));
+  document.querySelectorAll('.vtab').forEach(t=>t.classList.toggle('on',t.dataset.v===ST.view));
+
+  // Group filter buttons — 채널 뷰일 때만 표시
+  const grpFilterEl=document.getElementById('grpFilter');
+  if(grpFilterEl){
+    grpFilterEl.style.display=ST.view==='ch'?'flex':'none';
+    document.querySelectorAll('.gf-btn').forEach(b=>b.classList.toggle('on',b.dataset.g===ST.grp));
+  }
+
+  // Labels
+  const yn={2026:'2026년',2025:'2025년',cmp:'YoY 비교'}[ST.yr]||'';
+  const vn=ST.view==='ch'?'채널별 매출':'매장 손익';
+  const grpLblMap={all:'',online:' · 온라인',offline:' · 오프라인',ws:' · 도매'};
+  document.getElementById('chartLbl').textContent=`${yn} ${vn}${grpLblMap[ST.grp]||''} 현황${!ST.dt?' (DT 제외)':''}`;
+  document.getElementById('tblLbl').textContent=`${yn} 월별 ${vn}`;
+
+  renderKPIs();
+  renderChart();
+  if(ST.view==='ch') renderChTable();
+  else renderPLTable();
+  renderAssump();
+  renderFn();
+}
+
+// ══════════════════════════════════════════════
+//  EVENTS
+// ══════════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{ST.yr=t.dataset.y;save();render();}));
+document.querySelectorAll('.vtab').forEach(t=>t.addEventListener('click',()=>{ST.view=t.dataset.v;save();render();}));
+document.querySelectorAll('.gf-btn').forEach(b=>b.addEventListener('click',()=>{ST.grp=b.dataset.g;render();}));
+
+document.getElementById('btnVat').addEventListener('click',()=>{ST.vat=!ST.vat;render();});
+document.getElementById('btnDt').addEventListener('click',()=>{ST.dt=!ST.dt;render();});
+
+document.getElementById('apToggle').addEventListener('click',()=>{
+  const b=document.getElementById('apBody');
+  b.classList.toggle('open');
+  document.getElementById('apArr').textContent=b.classList.contains('open')?'▲':'▼';
+});
+
+document.getElementById('btnReset').addEventListener('click',()=>{
+  if(confirm('모든 시뮬레이션 입력값과 비용 가정을 기본값으로 초기화할까요?')){
+    ST={...mkState(),yr:ST.yr,view:ST.view,vat:ST.vat,dt:ST.dt};
+    save();render();
+  }
+});
+
+document.getElementById('btnExport').addEventListener('click',()=>{
+  const tag=`<script id="__baked__">window.__BS__=${JSON.stringify({ov:ST.ov,chOv:ST.chOv,costs:ST.costs})};<\/script>`;
+  let src=document.documentElement.outerHTML;
+  src=src.replace('<head>','<head>'+tag);
+  const blob=new Blob([src],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`글로니_경영대시보드_${new Date().toISOString().slice(0,10)}.html`;
+  a.click();
+});
+
+// Chart.js 로드 완료 후 렌더 (오프라인/CDN 지연 대응)
+function startApp(){
+  if(typeof Chart==='undefined'){setTimeout(startApp,80);return;}
+  render();
+}
+startApp();
+</script>
+</body>
+</html>
