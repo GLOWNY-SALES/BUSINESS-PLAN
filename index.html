@@ -80,6 +80,7 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
 .bdg{display:inline-flex;align-items:center;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;vertical-align:middle;margin-left:3px;}
 .bdg-a{background:#EFEFEB;color:#666;}
 .bdg-s{background:#DBEAFE;color:#1D4ED8;}
+.bdg-p{background:#D1FAE5;color:#065F46;}  /* 진행중 */
 .bdg-o{background:#D1FAE5;color:#065F46;}  /* over */
 .bdg-u{background:#FEE2E2;color:#991B1B;}  /* under */
 .bdg-m{background:#FEF3C7;color:#92400E;}  /* mid */
@@ -153,7 +154,7 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
 <header class="hd">
   <div class="hd-l">
     <div class="hd-brand">Glowny</div>
-    <div class="hd-title">경영 대시보드 2025 – 2026</div>
+    <div class="hd-title">경영 대시보드 2025 – 2026 <span id="updateBadge" style="font-size:10px;font-weight:400;color:#666;margin-left:8px;"></span></div>
   </div>
   <div class="hd-r">
     <button class="btn btn-vat" id="btnVat">
@@ -200,7 +201,8 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
           <button class="gf-btn" data-g="ws">도매</button>
         </div>
         <div style="display:flex;gap:6px;align-items:center;font-size:10px;color:#aaa;flex-wrap:wrap;">
-          <span class="bdg bdg-a">확정</span>실적&nbsp;
+          <span class="bdg bdg-a">확정</span>마감&nbsp;
+          <span class="bdg bdg-p">진행중</span>이번달&nbsp;
           <span class="bdg bdg-s">시뮬</span>시뮬레이션 (직접 수정)&nbsp;
           <span class="bdg bdg-o">100%↑</span><span class="bdg bdg-m">80~100%</span><span class="bdg bdg-u">~80%</span>
         </div>
@@ -226,8 +228,14 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
 // ══════════════════════════════════════════════
 const MO=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 const VAT_R=1.1;
-const CLOSED_CH=4;  // KPI 파일 기준 1~4월 마감 (index 0~3)
-const CLOSED_PL=4;  // BEP 파일 기준 1~4월 확정 (index 0~3)
+
+// 날짜 기반 자동 분류
+const _today=new Date();
+const _yesterday=new Date(_today);_yesterday.setDate(_today.getDate()-1);
+const CURRENT_MONTH=_today.getMonth();          // 진행중 월 (0-based, 5월=4)
+const CLOSED_CH=CURRENT_MONTH;                  // 확정 월 수: 0~CLOSED_CH-1
+const CLOSED_PL=4;                              // BEP 확정은 수동 관리
+const YESTERDAY_STR=`~${_yesterday.getMonth()+1}/${_yesterday.getDate()}일`; // "~5/12일"
 
 // ══════════════════════════════════════════════
 //  CHANNEL DATA  ─ 모두 +VAT 기준, 원
@@ -434,7 +442,7 @@ function chDispEff(k,i,yr){
 // ── Channel revenue helpers
 function chAct(k,i,yr){
   if(yr==='2025') return A25[k]?.[i]??null;
-  if(i<CLOSED_CH) return A26[k]?.[i]??null;
+  if(i<=CURRENT_MONTH) return A26[k]?.[i]??null; // 확정 + 진행중 모두 actual 반환
   return null;
 }
 function chGoal(k,i,yr){
@@ -680,7 +688,14 @@ function renderChTable(){
     <th style="min-width:70px;">연간 목표</th>
     <th style="min-width:60px;">YTD실적</th>
     <th style="min-width:55px;">달성률</th>`;
-  MO.forEach((m,i)=>{ th+=`<th style="min-width:${i<CLOSED_CH?'90px':'82px'}">${m}${i<CLOSED_CH&&yr2==='2026'?'<span class="bdg bdg-a" style="margin-left:3px;">확</span>':''}</th>`; });
+  MO.forEach((m,i)=>{
+    let badge='';
+    if(yr2==='2026'){
+      if(i<CLOSED_CH) badge='<span class="bdg bdg-a" style="margin-left:3px;">확</span>';
+      else if(i===CURRENT_MONTH) badge=`<span class="bdg bdg-p" style="margin-left:3px;">진행</span>`;
+    }
+    th+=`<th style="min-width:${(i<=CURRENT_MONTH&&yr2==='2026')?'95px':'82px'}">${m}${badge}</th>`;
+  });
   th+=`</tr></thead>`;
 
   let tb='<tbody>';
@@ -740,10 +755,26 @@ function renderChTable(){
           const v=A25[ch.k]?.[i];
           tb+=`<td class="cell-act">${v?`<div class="cell-act-v">${fm(v,'ch')}</div>`:'<span class="muted">—</span>'}</td>`;
         } else if(isActMonth){
+          // 확정 월
           const r=goal>0?act/goal:null;
           const actDisp=act!==null?fm(act,'ch'):'—';
           const goalDisp=goal?`<div class="cell-goal">목 ${fm(goal,'ch')} ${r!==null?rateBdg(r):''}</div>`:'';
           tb+=`<td class="cell-act"><div class="cell-act-v">${actDisp}</div>${goalDisp}</td>`;
+        } else if(i===CURRENT_MONTH&&yr2==='2026'){
+          // 진행중 월 — 수정 가능하되 진행중 스타일 + 날짜 표기
+          const curVal=A26[ch.k]?.[i]??chSim(ch.k,i);
+          const curDisp=ST.vat?curVal:Math.round(curVal/VAT_R);
+          const goalDisp=goal?`<div class="cell-goal">목 ${fm(goal,'ch')}</div>`:'';
+          const dateTag=`<div style="font-size:9px;color:#059669;margin-top:1px;">${YESTERDAY_STR}</div>`;
+          if(ch.k==='misswu'||goal===0){
+            tb+=`<td style="background:#F0FDF4;"><span class="muted" style="font-size:10px;">—</span>${dateTag}</td>`;
+          } else {
+            tb+=`<td style="background:#F0FDF4;"><input class="cell-sim-in" type="text" inputmode="numeric"
+              data-k="${ch.k}-${i}" data-ck="${ch.k}" data-ci="${i}"
+              style="border-color:#86EFAC;background:#ECFDF5;"
+              title="진행중 — ${YESTERDAY_STR} 기준 | ${ST.vat?'+VAT 입력':'-VAT 입력'}"
+              value="${fi(curDisp)}">${goalDisp}${dateTag}</td>`;
+          }
         } else {
           const simVal=chSim(ch.k,i);   // 내부 저장값은 항상 +VAT
           const simDisp=ST.vat?simVal:Math.round(simVal/VAT_R); // 표시값은 토글 반영
@@ -867,13 +898,19 @@ function renderPLTable(){
       continue;
     }
     tR+=rowR;tOI+=rowOI;tTg+=rowTg;
-    const act=STORES.every(({k})=>bIsAct(k,i,yr));
-    const rc=act?'act':'sim';
+    const isAllAct=STORES.every(({k})=>bIsAct(k,i,yr));
+    const isCurMo=!isAllAct&&i===CURRENT_MONTH&&yr==='2026';
+    const rc=isAllAct?'act':isCurMo?'act':'sim';
+    const bdgHtml=isAllAct
+      ?`<span class="bdg bdg-a">확정</span>`
+      :isCurMo
+        ?`<span class="bdg bdg-p">진행중</span><span style="font-size:9px;color:#059669;margin-left:3px;">${YESTERDAY_STR}</span>`
+        :`<span class="bdg bdg-s">시뮬</span>`;
     const oc=rowOI>=0?'#059669':'#DC2626';
     const rate=rowTg>0?rowR/rowTg:null;
 
     tb+=`<tr class="${rc}">
-      <td class="sticky-l">${MO[i]}<span class="bdg ${act?'bdg-a':'bdg-s'}">${act?'확정':'시뮬'}</span></td>`;
+      <td class="sticky-l">${MO[i]}${bdgHtml}</td>`;
     STORES.forEach(({k})=>{
       const r=bRev(k,i,yr);
       const isA=bIsAct(k,i,yr);
@@ -1031,9 +1068,9 @@ function renderFn(){
   const vatNote=ST.vat?'<strong>현재 +VAT 기준</strong> 표시':'<strong>현재 -VAT 기준</strong> 표시';
   const dtNote=ST.dt?'해외/DT 도매 목표 <strong>포함</strong>':'해외/DT 도매 목표 <strong style="color:#92400E;">제외</strong> (확정 실적은 표시되나 합산에서 제외)';
   const notes={
-    '2026':`* <strong>채널 매출</strong>: 1~4월 확정 실적 / 5~12월 시뮬레이션 (사업계획 파일 기준) · ${vatNote}<br>
-     * <strong>매장 손익</strong>: 1~4월 확정 실적 (BEP 파일 기준) / 5~12월 시뮬 · 시뮬 입력은 항상 +VAT 기준<br>
-     * ${dtNote}`,
+    '2026':`* <strong>확정</strong>: 전월까지 마감 실적 · <strong>진행중</strong>: ${MO[CURRENT_MONTH]} (${YESTERDAY_STR} 기준, 매일 오전 자동 업데이트) · <strong>시뮬</strong>: 미래 월 (직접 수정 가능)<br>
+     * <strong>채널 매출</strong>: 사업계획 파일 기준 · <strong>매장 손익</strong>: BEP 파일 기준 · 시뮬 입력은 항상 +VAT 기준<br>
+     * ${vatNote} · ${dtNote}`,
     '2025':'* 2025년 전체 실적 (사업계획 파일 기준, +VAT 원본)<br>* 도산 9월 개점 · SSG강남 8월 개점 · 잠실 6월 폐점',
     'cmp': `* 2025 실적 vs 2026 시뮬레이션 비교 · 채널 뷰: 사업계획 기준 / 손익 뷰: BEP 기준 · ${vatNote}`,
   };
@@ -1121,10 +1158,64 @@ document.getElementById('btnExport').addEventListener('click',()=>{
   a.click();
 });
 
-// Chart.js 로드 완료 후 렌더 (오프라인/CDN 지연 대응)
+// ── data.json fetch & merge ──────────────────
+const DATA_URL='https://raw.githubusercontent.com/glowny-sales/BUSINESS-PLAN/main/data.json';
+
+function mergeData(json){
+  try{
+    // KPI actual 반영 (채널 실적 덮어쓰기)
+    if(json.kpi){
+      const kpi=typeof json.kpi==='string'?JSON.parse(json.kpi):json.kpi;
+      if(kpi.actual){
+        Object.keys(kpi.actual).forEach(k=>{
+          if(A26[k]){
+            kpi.actual[k].forEach((v,i)=>{
+              if(v&&v>0) A26[k][i]=v;
+            });
+          }
+        });
+      }
+      if(kpi.goal){
+        Object.keys(kpi.goal).forEach(k=>{
+          if(G26[k]){
+            kpi.goal[k].forEach((v,i)=>{
+              if(v&&v>0) G26[k][i]=v;
+            });
+          }
+        });
+      }
+    }
+    // Daily 반영 (시뮬 월 우선 적용)
+    if(json.daily){
+      const daily=typeof json.daily==='string'?JSON.parse(json.daily):json.daily;
+      if(daily.daily){
+        Object.keys(daily.daily).forEach(k=>{
+          if(A26[k]){
+            daily.daily[k].forEach((v,i)=>{
+              if(v&&v>0&&A26[k][i]===null) A26[k][i]=v;
+            });
+          }
+        });
+      }
+    }
+    // 업데이트 날짜 표시
+    if(json.updated&&json.updated!=='init'){
+      const badge=document.getElementById('updateBadge');
+      if(badge) badge.textContent=`· 마지막 업데이트: ${json.updated}`;
+    }
+  }catch(e){console.warn('data.json merge error:',e);}
+}
+
 function startApp(){
   if(typeof Chart==='undefined'){setTimeout(startApp,80);return;}
-  render();
+  // data.json fetch 시도 — 실패해도 기존 하드코딩 데이터로 정상 작동
+  fetch(DATA_URL+'?t='+Date.now())
+    .then(r=>r.ok?r.json():null)
+    .then(json=>{
+      if(json) mergeData(json);
+      render();
+    })
+    .catch(()=>render()); // fetch 실패 시 그냥 렌더
 }
 startApp();
 </script>
