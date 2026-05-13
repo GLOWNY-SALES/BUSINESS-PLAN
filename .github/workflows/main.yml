@@ -2,14 +2,17 @@ name: Sync data.json from OneDrive
 
 on:
   schedule:
-    - cron: '0 22 * * 1-5'  # 한국시간 오전 7시 (UTC 22:00) 평일만
-  workflow_dispatch:          # 수동 실행 버튼
+    - cron: '0 22 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download data.json from OneDrive
         run: |
