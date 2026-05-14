@@ -16,9 +16,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Write data.json from payload
+      - name: Write data.json
         run: |
-          echo '${{ github.event.client_payload.data }}' | base64 -d > data.json
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo '${{ github.event.client_payload.data }}' | base64 -d > data.json
+          else
+            curl -L "${{ secrets.ONEDRIVE_URL }}" -o data.json
+          fi
 
       - name: Commit and push
         run: |
