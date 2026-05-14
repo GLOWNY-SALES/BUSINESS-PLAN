@@ -271,8 +271,8 @@ const A26={
   dosan:     [131261403,233611700,330339519,406608578,...n8],
   ssg:       [64949010, 106375800,130147680,125516000,...n8],
   popup:     [0,        0,        0,        183947000,...n8],
-  ws_dom:    [20227691, 66813734, 27754810, 57193886,...n8],
-  ws_glb:    [0,        192402505,10413083, 76145520,...n8],
+  ws_dom:    [20227691+0, 66813734+192402505, 27754810+10413083, 57193886+76145520,...n8],
+  ws_glb:    [0,        0,        0,        0,        ...n8],
 };
 
 // 2025 actuals (+VAT)
@@ -308,8 +308,8 @@ const CH_GROUPS=[
     {k:'popup', n:'팝업',  sub:'국내'},
   ]},
   {id:'ws',n:'도매',chs:[
-    {k:'ws_dom',n:'국내 도매',sub:'Heights·EMPTY·PEER 등'},
-    {k:'ws_glb',n:'해외/DT 도매',sub:'글로벌 도매+DT'},
+    {k:'ws_dom',n:'국내/해외 도매',sub:'Heights·EMPTY·PEER 등'},
+    {k:'ws_glb',n:'DT 도매',sub:'글로벌 DT'},
   ]},
 ];
 const ALL_CH_KEYS=CH_GROUPS.flatMap(g=>g.chs.map(c=>c.k));
@@ -432,10 +432,15 @@ function chSimEff(k,i){
   if(k==='ws_glb'&&!ST.dt) return 0;
   return chSim(k,i);
 }
-// 집계용: 확정 실적은 항상 포함, 목표/시뮬은 DT 토글 반영
+// 집계용: 확정 실적은 항상 포함, 진행중은 ST.chOv 또는 0, 시뮬은 DT 토글 반영
 function chDispEff(k,i,yr){
   const act=chAct(k,i,yr);
-  if(act!==null) return act; // 확정 실적은 DT 무관 항상 포함
+  if(act!==null) return act; // 확정 실적
+  if(yr==='2026'&&i===CURRENT_MONTH){
+    // 진행중 월: ST.chOv에 있으면 그 값, 없으면 0
+    if(k==='ws_glb'&&!ST.dt) return 0;
+    return ST.chOv[k+'-'+i]??0;
+  }
   if(k==='ws_glb'&&!ST.dt) return 0;
   return chSim(k,i);
 }
@@ -760,13 +765,13 @@ function renderChTable(){
           const goalDisp=goal?`<div class="cell-goal">목 ${fm(goal,'ch')} ${r!==null?rateBdg(r):''}</div>`:'';
           tb+=`<td class="cell-act"><div class="cell-act-v">${actDisp}</div>${goalDisp}</td>`;
         } else if(i===CURRENT_MONTH&&yr2==='2026'){
-          // 진행중 월 — 달성률 표시, 날짜는 헤더에만
-          const curVal=A26[ch.k]?.[i]??chSim(ch.k,i);
-          const curDisp=ST.vat?curVal:Math.round(curVal/VAT_R);
-          const rate=goal>0?curVal/goal:null;
+          // 진행중 월 — ST.chOv에 데이터 있으면 표시, 없으면 0
+          const rawVal=ST.chOv[ch.k+'-'+i]??0;
+          const curDisp=ST.vat?rawVal:Math.round(rawVal/VAT_R);
+          const rate=goal>0&&rawVal>0?rawVal/goal:null;
           const rateTag=rate!==null?`<div style="margin-top:2px;">${rateBdg(rate)}</div>`:'';
           const goalDisp=goal?`<div class="cell-goal">목 ${fm(goal,'ch')}</div>`:'';
-          if(ch.k==='misswu'||goal===0){
+          if(ch.k==='misswu'){
             tb+=`<td style="background:#F0FDF4;"><span class="muted" style="font-size:10px;">—</span></td>`;
           } else {
             tb+=`<td style="background:#F0FDF4;"><input class="cell-sim-in" type="text" inputmode="numeric"
@@ -1066,7 +1071,7 @@ function renderAssump(){
 // ══════════════════════════════════════════════
 function renderFn(){
   const vatNote=ST.vat?'<strong>현재 +VAT 기준</strong> 표시':'<strong>현재 -VAT 기준</strong> 표시';
-  const dtNote=ST.dt?'해외/DT 도매 목표 <strong>포함</strong>':'해외/DT 도매 목표 <strong style="color:#92400E;">제외</strong> (확정 실적은 표시되나 합산에서 제외)';
+  const dtNote=ST.dt?'DT 도매 목표 <strong>포함</strong>':'DT 도매 목표 <strong style="color:#92400E;">제외</strong> (확정 실적은 표시되나 합산에서 제외)';
   const notes={
     '2026':`* <strong>확정</strong>: 전월까지 마감 실적 · <strong>진행중</strong>: ${MO[CURRENT_MONTH]} (${YESTERDAY_STR} 기준, 매일 오전 자동 업데이트) · <strong>시뮬</strong>: 미래 월 (직접 수정 가능)<br>
      * <strong>채널 매출</strong>: 사업계획 파일 기준 · <strong>매장 손익</strong>: BEP 파일 기준 · 시뮬 입력은 항상 +VAT 기준<br>
@@ -1163,16 +1168,19 @@ const DATA_URL='https://raw.githubusercontent.com/glowny-sales/BUSINESS-PLAN/mai
 
 function mergeData(json){
   try{
-    // KPI actual로 A26 덮어쓰기 제거 — A26은 하드코딩 값이 정확함
     // Daily 반영 — 시뮬 월(CLOSED_CH 이후)만 ST.chOv에 저장
+    // WHOLESALE(ws_glb) → ws_dom으로 라우팅 (국내/해외 도매 실적)
     if(json.daily){
       const raw=typeof json.daily==='string'?JSON.parse(json.daily):json.daily;
       const src=raw.daily||raw;
       Object.keys(src).forEach(k=>{
-        if(!A26[k]) return;
+        // WHOLESALE 데이터는 ws_dom에 저장
+        const targetKey = k === 'ws_glb' ? 'ws_dom' : k;
+        if(!A26[targetKey]) return;
         src[k].forEach((v,i)=>{
           if(v&&v>0&&i>=CLOSED_CH){
-            if(!ST.chOv[k+'-'+i]) ST.chOv[k+'-'+i]=v;
+            // data.json 값은 항상 덮어씀 (이전 시뮬값 대체)
+            ST.chOv[targetKey+'-'+i]=v;
           }
         });
       });
