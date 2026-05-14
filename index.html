@@ -1185,18 +1185,22 @@ function mergeData(json){
         });
       }
     }
-    // Daily 반영 (시뮬 월 우선 적용)
+    // Daily 반영 — ST.chOv에 저장해야 chDisp가 시뮬 월에서 읽음
     if(json.daily){
       const daily=typeof json.daily==='string'?JSON.parse(json.daily):json.daily;
-      if(daily.daily){
-        Object.keys(daily.daily).forEach(k=>{
-          if(A26[k]){
-            daily.daily[k].forEach((v,i)=>{
-              if(v&&v>0&&A26[k][i]===null) A26[k][i]=v;
-            });
+      const src=daily.daily||daily;
+      Object.keys(src).forEach(k=>{
+        if(!A26[k]) return;
+        src[k].forEach((v,i)=>{
+          if(v&&v>0&&i>=CLOSED_CH){
+            // 시뮬 월은 ST.chOv에 저장 (chSim이 읽는 곳)
+            if(ST.chOv[k+'-'+i]===undefined) ST.chOv[k+'-'+i]=v;
+          } else if(v&&v>0&&A26[k][i]===null){
+            // 확정 월이지만 아직 null이면 A26에 반영
+            A26[k][i]=v;
           }
         });
-      }
+      });
     }
     // 업데이트 날짜 표시
     if(json.updated&&json.updated!=='init'){
