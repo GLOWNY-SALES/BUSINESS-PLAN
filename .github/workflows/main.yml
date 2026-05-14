@@ -1,8 +1,10 @@
 name: Sync data.json from OneDrive
 
 on:
+  repository_dispatch:
+    types: [update-data]
   schedule:
-    - cron: '10 2 * * 1-5'  # KST 11:10
+    - cron: '10 2 * * 1-5'
   workflow_dispatch:
 
 permissions:
