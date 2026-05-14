@@ -1163,41 +1163,16 @@ const DATA_URL='https://raw.githubusercontent.com/glowny-sales/BUSINESS-PLAN/mai
 
 function mergeData(json){
   try{
-    // KPI actual 반영 (채널 실적 덮어쓰기)
-    if(json.kpi){
-      const kpi=typeof json.kpi==='string'?JSON.parse(json.kpi):json.kpi;
-      if(kpi.actual){
-        Object.keys(kpi.actual).forEach(k=>{
-          if(A26[k]){
-            kpi.actual[k].forEach((v,i)=>{
-              if(v&&v>0) A26[k][i]=v;
-            });
-          }
-        });
-      }
-      if(kpi.goal){
-        Object.keys(kpi.goal).forEach(k=>{
-          if(G26[k]){
-            kpi.goal[k].forEach((v,i)=>{
-              if(v&&v>0) G26[k][i]=v;
-            });
-          }
-        });
-      }
-    }
-    // Daily 반영 — ST.chOv에 저장해야 chDisp가 시뮬 월에서 읽음
+    // KPI actual로 A26 덮어쓰기 제거 — A26은 하드코딩 값이 정확함
+    // Daily 반영 — 시뮬 월(CLOSED_CH 이후)만 ST.chOv에 저장
     if(json.daily){
-      const daily=typeof json.daily==='string'?JSON.parse(json.daily):json.daily;
-      const src=daily.daily||daily;
+      const raw=typeof json.daily==='string'?JSON.parse(json.daily):json.daily;
+      const src=raw.daily||raw;
       Object.keys(src).forEach(k=>{
         if(!A26[k]) return;
         src[k].forEach((v,i)=>{
           if(v&&v>0&&i>=CLOSED_CH){
-            // 시뮬 월은 ST.chOv에 저장 (chSim이 읽는 곳)
-            if(ST.chOv[k+'-'+i]===undefined) ST.chOv[k+'-'+i]=v;
-          } else if(v&&v>0&&A26[k][i]===null){
-            // 확정 월이지만 아직 null이면 A26에 반영
-            A26[k][i]=v;
+            if(!ST.chOv[k+'-'+i]) ST.chOv[k+'-'+i]=v;
           }
         });
       });
