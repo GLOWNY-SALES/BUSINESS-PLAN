@@ -16,9 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download data.json from OneDrive
+      - name: Write data.json from payload
         run: |
-          curl -L "${{ secrets.ONEDRIVE_URL }}" -o data.json
+          echo '${{ github.event.client_payload.data }}' | base64 -d > data.json
 
       - name: Commit and push
         run: |
