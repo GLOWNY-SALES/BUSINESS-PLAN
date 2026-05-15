@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>📊 Glowny Sales Dashboard</title>
+<title>글로니 경영 대시보드 2025–2026</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -137,6 +137,72 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
 .vat-bar.incl{background:#D1FAE5;color:#065F46;}
 .vat-bar.excl{background:#F3F4F6;color:#6B7280;}
 
+/* ── Channel Share Stacked Bar ── */
+.cs-bar{display:flex;height:18px;border-radius:3px;overflow:hidden;background:#F0EFEB;width:100%;min-width:140px;}
+.cs-seg{display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;border-right:1px solid rgba(255,255,255,0.3);}
+.cs-seg:last-child{border-right:none;}
+.cs-seg.cafe24{background:#2563EB;}
+.cs-seg.mss{background:#7C3AED;}
+.cs-seg.cm29{background:#0891B2;}
+.cs-seg.offline{background:#059669;}
+.cs-seg.etc{background:#9CA3AF;}
+.cs-onoff{font-size:9px;color:#666;margin-top:2px;font-weight:500;}
+.cs-onoff .on{color:#1D4ED8;font-weight:700;}
+.cs-onoff .off{color:#065F46;font-weight:700;}
+.cs-legend{display:flex;gap:10px;flex-wrap:wrap;font-size:10px;color:#666;margin-top:10px;padding:8px 12px;background:#FAFAF8;border-radius:6px;}
+.cs-legend-item{display:flex;align-items:center;gap:4px;}
+.cs-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+/* ── Weekly Top Products Table ── */
+.wtop-tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.wtop-tbl thead th{background:#F5F4F0;color:#888;font-weight:700;padding:7px 10px;text-align:right;border-bottom:1.5px solid #E2E0DB;font-size:10px;}
+.wtop-tbl thead th:nth-child(1),.wtop-tbl thead th:nth-child(2){text-align:left;}
+.wtop-tbl tbody td{padding:7px 10px;text-align:right;border-bottom:1px solid #F0EEE9;vertical-align:top;}
+.wtop-tbl tbody td:nth-child(1),.wtop-tbl tbody td:nth-child(2){text-align:left;}
+.wtop-tbl tbody tr:hover td{background:#FAFAF8;}
+.wtop-name{font-size:11px;font-weight:600;color:#111;}
+.wtop-color{font-size:10px;color:#888;display:block;margin-top:1px;}
+.wtop-rank{font-weight:700;font-size:13px;color:#666;width:30px;}
+.wtop-rank.top3{color:#D97706;}
+.wtop-banner{margin-bottom:10px;padding:8px 12px;background:linear-gradient(to right,#EFF6FF,#FFFFFF);border-left:3px solid #2563EB;border-radius:4px;font-size:11px;color:#1E40AF;}
+
+/* ── Month Progress Strip (채널별 매출 - 진행중 월 요약) ── */
+.mps-row{padding:10px 16px;border-bottom:1px solid #F0EFEB;display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:linear-gradient(to right,#FFFBEB 0%,#FEF3C7 100%);}
+.mps-tag{font-size:11px;font-weight:700;color:#DC2626;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.mps-tag .mps-sub{font-size:9px;color:#888;font-weight:400;}
+.mps-stats{display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex:1;font-size:11px;color:#444;}
+.mps-stats strong{color:#111;font-weight:700;font-size:12px;}
+.mps-sep{color:#ccc;margin:0 2px;}
+.mps-verdict{padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;text-align:center;min-width:110px;}
+.mps-verdict.verdict-good{background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7;}
+.mps-verdict.verdict-mid{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;}
+.mps-verdict.verdict-bad{background:#FEE2E2;color:#991B1B;border:1px solid #FCA5A5;}
+.mps-verdict .mps-sub{font-size:9px;font-weight:500;margin-top:1px;opacity:0.9;}
+
+/* ── Weekly Report ── */
+.wr-bw{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.wr-card{background:#fff;border-radius:9px;border:1px solid #E2E0DB;padding:14px 16px;}
+.wr-card.best{border-left:4px solid #059669;}
+.wr-card.worst{border-left:4px solid #DC2626;}
+.wr-card-ttl{font-size:11px;font-weight:700;color:#888;letter-spacing:.05em;margin-bottom:10px;text-transform:uppercase;}
+.wr-card.best .wr-card-ttl{color:#059669;}
+.wr-card.worst .wr-card-ttl{color:#DC2626;}
+.wr-rank-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #F0EFEB;gap:10px;}
+.wr-rank-row:last-child{border-bottom:none;}
+.wr-rank-no{font-size:14px;font-weight:700;color:#bbb;width:22px;flex-shrink:0;}
+.wr-rank-info{flex:1;min-width:0;}
+.wr-rank-name{font-size:12px;font-weight:600;color:#111;}
+.wr-rank-sub{font-size:10px;color:#999;margin-top:1px;}
+.wr-rank-val{text-align:right;flex-shrink:0;}
+.wr-rank-amt{font-size:12px;font-weight:700;color:#111;}
+.wr-rank-wow{font-size:10px;font-weight:700;margin-top:1px;}
+.wr-rank-wow.up{color:#059669;}.wr-rank-wow.dn{color:#DC2626;}.wr-rank-wow.flat{color:#9CA3AF;}
+.wr-empty{font-size:11px;color:#aaa;text-align:center;padding:20px 0;}
+.wr-wsel{padding:5px 12px;border-radius:6px;border:1.5px solid #E2E0DB;font-size:12px;font-family:inherit;background:#fff;cursor:pointer;min-width:220px;}
+.wr-meta{font-size:10px;color:#888;margin-top:4px;}
+.wr-tbl-wow{font-weight:700;}
+.wr-tbl-wow.up{color:#059669;}.wr-tbl-wow.dn{color:#DC2626;}.wr-tbl-wow.flat{color:#9CA3AF;}
+
 @media(max-width:860px){
   .kpis{grid-template-columns:repeat(3,1fr);}
   .ap-grid{grid-template-columns:1fr 1fr;}
@@ -146,115 +212,11 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
 @media(max-width:560px){
   .kpis{grid-template-columns:repeat(2,1fr);}
   .ap-grid{grid-template-columns:1fr;}
+  .wr-bw{grid-template-columns:1fr;}
 }
-
-/* ── Login Gate ── */
-#authGate{position:fixed;inset:0;background:#111;display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;}
-.auth-box{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:40px 36px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
-.auth-brand{font-size:10px;color:#666;letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px;}
-.auth-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:6px;}
-.auth-sub{font-size:12px;color:#888;margin-bottom:28px;line-height:1.6;}
-.auth-lbl{font-size:11px;color:#aaa;font-weight:600;margin-bottom:8px;display:block;}
-.auth-input{width:100%;padding:12px 14px;background:#0a0a0a;border:1.5px solid #2a2a2a;border-radius:8px;color:#fff;font-size:14px;font-family:inherit;transition:border-color .15s;box-sizing:border-box;}
-.auth-input:focus{outline:none;border-color:#2563EB;}
-.auth-input.err{border-color:#DC2626;animation:shake .4s;}
-@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
-.auth-btn{width:100%;padding:12px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:16px;font-family:inherit;transition:background .15s;}
-.auth-btn:hover{background:#1D4ED8;}
-.auth-err{font-size:11px;color:#DC2626;margin-top:10px;display:none;font-weight:600;}
-.auth-err.show{display:block;}
-.auth-foot{font-size:10px;color:#555;margin-top:24px;text-align:center;line-height:1.6;}
-.btn-logout{background:transparent;border:1px solid #3a3a3a;color:#aaa;padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
-.btn-logout:hover{border-color:#DC2626;color:#DC2626;}
 </style>
 </head>
 <body>
-
-<!-- ══════════════════════════════════════════════
-     LOGIN GATE — 24시간 세션 인증
-     ══════════════════════════════════════════════ -->
-<div id="authGate">
-  <div class="auth-box">
-    <div class="auth-brand">Glowny</div>
-    <div class="auth-title">🔒 Sales Dashboard</div>
-    <div class="auth-sub">접근 권한이 있는 임직원만 입장할 수 있습니다.<br>비밀번호를 입력하세요.</div>
-    <label class="auth-lbl">비밀번호</label>
-    <input type="password" id="authInput" class="auth-input" placeholder="••••••••••••" autocomplete="off" autofocus>
-    <button class="auth-btn" id="authBtn">입장</button>
-    <div class="auth-err" id="authErr">비밀번호가 올바르지 않습니다.</div>
-    <div class="auth-foot">© Glowny · 내부 임직원 전용 시스템</div>
-  </div>
-</div>
-
-<script>
-// ══════════════════════════════════════════════
-//  AUTH GATE — SHA-256 해시 검증 + 24h 세션
-// ══════════════════════════════════════════════
-(function(){
-  const PW_HASH='bf01c39ef171b54a9a302c11238b871a6cc8c43c59afeb765d504eb9ea3d3fe6'; // SHA-256
-  const SESSION_KEY='gd_auth';
-  const TTL=3*60*60*1000; // 3h
-
-  // 세션 유효성 검사
-  function isValidSession(){
-    try{
-      const raw=localStorage.getItem(SESSION_KEY);
-      if(!raw) return false;
-      const{h,t}=JSON.parse(raw);
-      if(h!==PW_HASH) return false;
-      if(Date.now()-t>TTL) return false;
-      return true;
-    }catch(e){return false;}
-  }
-
-  async function sha256(s){
-    const buf=new TextEncoder().encode(s);
-    const hash=await crypto.subtle.digest('SHA-256',buf);
-    return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  }
-
-  async function tryAuth(){
-    const inp=document.getElementById('authInput');
-    const err=document.getElementById('authErr');
-    const pw=inp.value;
-    if(!pw){inp.focus();return;}
-    const h=await sha256(pw);
-    if(h===PW_HASH){
-      localStorage.setItem(SESSION_KEY,JSON.stringify({h,t:Date.now()}));
-      document.getElementById('authGate').style.display='none';
-      window.__authenticated=true;
-    } else {
-      err.classList.add('show');
-      inp.classList.add('err');
-      inp.value='';
-      setTimeout(()=>{inp.classList.remove('err');},400);
-      setTimeout(()=>{err.classList.remove('show');},3000);
-      inp.focus();
-    }
-  }
-
-  // 이미 로그인 상태면 게이트 즉시 닫음
-  if(isValidSession()){
-    document.getElementById('authGate').style.display='none';
-    window.__authenticated=true;
-  } else {
-    document.addEventListener('DOMContentLoaded',()=>{
-      document.getElementById('authBtn').addEventListener('click',tryAuth);
-      document.getElementById('authInput').addEventListener('keydown',e=>{
-        if(e.key==='Enter') tryAuth();
-      });
-    });
-  }
-
-  // 로그아웃 함수 (전역)
-  window.__logout=function(){
-    if(confirm('로그아웃 하시겠어요?')){
-      localStorage.removeItem(SESSION_KEY);
-      location.reload();
-    }
-  };
-})();
-</script>
 
 <header class="hd">
   <div class="hd-l">
@@ -270,7 +232,6 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
     </button>
     <button class="btn btn-ghost" id="btnReset">초기화</button>
     <button class="btn btn-blue" id="btnExport">⬇ 저장</button>
-    <button class="btn-logout" onclick="window.__logout()" title="로그아웃">🔒 로그아웃</button>
   </div>
 </header>
 
@@ -278,6 +239,7 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
   <div class="tab-g" id="viewTabs">
     <div class="vtab on" data-v="ch">채널별 매출</div>
     <div class="vtab" data-v="daily">일매출 현황</div>
+    <div class="vtab" data-v="weekly">주간 리포트</div>
     <div class="vtab" data-v="pl">매장 손익</div>
   </div>
 </nav>
@@ -289,6 +251,7 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
       <span class="card-ttl" id="chartLbl">채널별 매출 현황</span>
       <div class="legend" id="legend"></div>
     </div>
+    <div id="monthProgressStrip" style="display:none;"></div>
     <div class="chart-wrap"><canvas id="chart"></canvas></div>
   </div>
   <div class="card" id="yoyChartCard" style="display:none;">
@@ -354,6 +317,42 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
       </div>
       <div id="dailyChartWrap" style="padding:12px 16px 4px;"><canvas id="dailyChart" height="90"></canvas></div>
       <div class="tbl-wrap" id="dailyTblWrap" style="max-height:600px;overflow-y:auto;"></div>
+    </div>
+  </div>
+  <div id="weeklySection" style="display:none;">
+    <div class="card">
+      <div class="card-hd" style="flex-wrap:wrap;gap:10px;">
+        <div>
+          <span class="card-ttl" id="weeklyLbl">주간 리포트</span>
+          <div class="wr-meta" id="weeklyMeta"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select class="wr-wsel" id="weeklySelect"></select>
+          <div class="grp-filter" id="weeklyChFilter">
+            <button class="gf-btn on" data-wg="all">전체</button>
+            <button class="gf-btn" data-wg="online">온라인</button>
+            <button class="gf-btn" data-wg="offline">오프라인</button>
+          </div>
+        </div>
+      </div>
+      <div style="padding:14px 16px;">
+        <div class="kpis" id="weeklyKpis" style="margin-bottom:14px;"></div>
+        <div class="tbl-wrap" id="weeklyTblWrap"></div>
+      </div>
+    </div>
+    <div class="card" id="weeklyTopCard">
+      <div class="card-hd" style="flex-wrap:wrap;gap:10px;">
+        <div>
+          <span class="card-ttl">📦 상품 TOP</span>
+          <div class="wr-meta" id="weeklyTopMeta"></div>
+        </div>
+        <div class="grp-filter" id="weeklyTopViewFilter">
+          <button class="gf-btn on" data-tv="weekly">이번 주 TOP</button>
+          <button class="gf-btn" data-tv="channel">시즌·채널별 TOP</button>
+        </div>
+      </div>
+      <div id="weeklyTopChannelFilters" style="display:none;padding:10px 16px;border-bottom:1px solid #F0EFEB;background:#FAFAF8;"></div>
+      <div id="weeklyTopContent" style="padding:14px 16px;"></div>
     </div>
   </div>
 </main>
@@ -669,40 +668,44 @@ function renderKPIs(){
       }
     });
   }
-  // YTD: 진행중 월(CURRENT_MONTH)까지 누계 합산
-  //  - 채널 뷰: 1~현재월 (5월 진행중 데이터는 chDispEff로 ST.chOv 포함)
-  //  - 매장 뷰: BEP는 일별 자동 업데이트 아니므로 확정 마감월(CLOSED_PL)까지만
-  let ytdAct=0, ytdGoal=null, ytdEndIdx;
+  // YTD: 채널 뷰는 1월~CURRENT_MONTH 누계 (확정 + 진행중 MTD), 매장 손익은 1~4월 (BEP는 일별 데이터 없음)
+  let ytdAct=0, ytdGoal=null, ytdLbl;
   if(vw==='ch'){
-    ytdEndIdx=yr==='2026'?CURRENT_MONTH:11; // 2026: 진행중월까지, 2025: 12월 전체
+    // 1월부터 진행중 월까지의 모든 실적 합산 (chDispEff: 확정월=actual, 진행중월=ST.chOv)
     ytdAct=chKeys.reduce((s,k)=>{
-      for(let i=0;i<=ytdEndIdx;i++){
-        if(yr==='2025') s+=(A25[k]?.[i]??0);
-        else s+=(chDispEff(k,i,yr)??0); // 확정+진행중 포함
-      }
+      for(let i=0;i<=CURRENT_MONTH;i++) s+=(chDispEff(k,i,yr)??0);
       return s;
     },0);
-    ytdGoal=yr==='2026'?chKeys.reduce((s,k)=>{
-      for(let i=0;i<=ytdEndIdx;i++) s+=(chGoalEff(k,i,'2026')??0);
-      return s;
-    },0):null;
+    // 목표: 확정 월은 전체, 진행중 월은 일수 비례 (동기간 페이스 비교)
+    if(yr==='2026'){
+      const todayD=new Date();
+      const daysPassedCur=Math.max(1, todayD.getDate()-1);  // 어제까지 경과일
+      const totalDaysCur=DIM[CURRENT_MONTH];
+      const proRate=daysPassedCur/totalDaysCur;
+      ytdGoal=chKeys.reduce((s,k)=>{
+        for(let i=0;i<CURRENT_MONTH;i++) s+=(chGoalEff(k,i,'2026')??0);
+        s+=(chGoalEff(k,CURRENT_MONTH,'2026')??0)*proRate;
+        return s;
+      },0);
+      ytdLbl=`1월~${YESTERDAY_STR.replace('~','').replace('일','')} 누계`;
+    } else {
+      ytdLbl=yr+'년 1~'+(CURRENT_MONTH+1)+'월 누계';
+    }
   } else {
-    ytdEndIdx=yr==='2026'?CLOSED_PL-1:11;
+    // 매장 손익: 오프라인 매출 누계 (CLOSED_PL=4 기준 유지)
     STORES.forEach(({k})=>{
-      for(let i=0;i<=ytdEndIdx;i++){
+      for(let i=0;i<CLOSED_PL;i++){
         const r=bRev(k,i,yr);
-        if(r&&bIsAct(k,i,yr)) ytdAct+=dv(r,'bep');
+        if(r) ytdAct+=dv(r,'bep');
       }
     });
     ytdGoal=yr==='2026'?STORES.reduce((s,{k})=>{
-      for(let i=0;i<=ytdEndIdx;i++) s+=dv(BTGT26[k]?.[i]||0,'bep');
+      for(let i=0;i<CLOSED_PL;i++) s+=dv(BTGT26[k]?.[i]||0,'bep');
       return s;
     },0):null;
+    ytdLbl=yr==='2025'?'2025년 1~4월 누계':'1~4월 누계';
   }
   const ytdRate=ytdGoal&&ytdGoal>0?ytdAct/ytdGoal:null;
-  // 라벨: 채널 뷰(2026)는 어제 기준, 매장 뷰는 마감월 기준
-  const ytdDateStr=`~${_yesterday.getMonth()+1}/${_yesterday.getDate()}`; // "~5/14"
-  const ytdLbl=yr==='2025'?'2025년 전체':(vw==='ch'?`${ytdDateStr} 누계`:`1~${ytdEndIdx+1}월 누계`);
   const dR=totPY>0?fdelta(totCur,totPY):null;
   const vatLbl=ST.vat?'(+VAT)':'(-VAT)';
   const dtNote=!ST.dt?'<span style="font-size:9px;background:#FEF3C7;color:#92400E;padding:1px 5px;border-radius:3px;margin-left:4px;">DT 제외</span>':'';
@@ -718,13 +721,13 @@ function renderKPIs(){
     <div class="kpi">
       <div class="kpi-lbl">YTD 실적 ${vatLbl} <span style="font-size:9px;color:#aaa;">(${ytdLbl})</span></div>
       <div class="kpi-val" style="color:#2563EB;">${fm(ytdAct,'ch')}</div>
-      <div class="kpi-sub">${ytdRate!==null?'목표 대비 달성률':'전년 실적 기준'}</div>
+      <div class="kpi-sub">${ytdRate!==null?(vw==='ch'?'동기간 목표 대비':'목표 대비 달성률'):'전년 실적 기준'}</div>
       <div class="kpi-dy ${ytdRate!==null?(ytdRate>=1?'up':'dn'):'up'}">${ytdRate!==null?fp(ytdRate):'—'}</div>
     </div>
     <div class="kpi">
-      <div class="kpi-lbl">연간 예상 합계</div>
+      <div class="kpi-lbl">연간 시뮬 합계</div>
       <div class="kpi-val">${fm(totCur)}</div>
-      <div class="kpi-sub">실적+진행중+시뮬${!ST.dt?' (DT 제외)':''}</div>
+      <div class="kpi-sub">실적+시뮬${!ST.dt?' (DT 제외)':''}</div>
       ${dR?`<div class="kpi-dy ${dR.v>=0?'up':'dn'}">YoY ${dR.s}</div>`:''}
     </div>
     <div class="kpi">
@@ -743,6 +746,35 @@ function renderKPIs(){
 //  CHART
 // ══════════════════════════════════════════════
 let chartInst=null;
+
+// 진행중인 월의 막대 둘레에 점선 박스를 그리는 플러그인
+const monthBoxPlugin = {
+  id: 'monthBox',
+  afterDatasetsDraw(chart) {
+    const opts = chart.options.plugins?.monthBox;
+    if(!opts || opts.monthIdx == null || opts.monthIdx < 0) return;
+    const {ctx, chartArea, scales: {x}} = chart;
+    const i = opts.monthIdx;
+    if(!chart.data.labels || i >= chart.data.labels.length) return;
+
+    const xCenter = x.getPixelForValue(i);
+    const slotWidth = (chartArea.right - chartArea.left) / chart.data.labels.length;
+    const boxWidth = slotWidth * 0.78;
+
+    ctx.save();
+    ctx.strokeStyle = opts.color || '#DC2626';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeRect(
+      xCenter - boxWidth/2,
+      chartArea.top - 2,
+      boxWidth,
+      chartArea.bottom - chartArea.top + 4
+    );
+    ctx.restore();
+  }
+};
+
 function renderChart(){
   const yr=ST.yr,vw=ST.view;
   let ds=[];
@@ -825,11 +857,16 @@ function renderChart(){
   if(chartInst){chartInst.destroy();chartInst=null;}
   chartInst=new Chart(ctx,{
     data:{labels:MO,datasets:ds},
+    plugins:[monthBoxPlugin],
     options:{responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{callbacks:{
-        label:c=>`${c.dataset.label}: ${c.parsed.y!==null?(c.parsed.y.toFixed(0)+'백만'):'—'}`
-      }}},
+      plugins:{
+        monthBox:{monthIdx: (ST.view==='ch' && yr==='2026') ? CURRENT_MONTH : null},
+        legend:{display:false},
+        tooltip:{callbacks:{
+          label:c=>`${c.dataset.label}: ${c.parsed.y!==null?(c.parsed.y.toFixed(0)+'백만'):'—'}`
+        }}
+      },
       scales:{
         x:{grid:{display:false},ticks:{font:{size:10}}},
         y:{grid:{color:'#F0EFEB'},ticks:{font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'억':v+'M'}},
@@ -1408,40 +1445,35 @@ function renderDailyTable(){
   const cumulTotal=visChs.reduce((s,c)=>s+cumul[c.k],0);
 
   // 헤더 + 누계/잔여 고정 행 (thead에 포함)
-  // 헤더 높이 계산용 (각 행 약 26px 추정)
-  const ROW1_TOP=0;
-  const ROW2_TOP=28; // 채널명 행 높이
-  const ROW3_TOP=56; // 누계 행 추가
-
   let th=`<thead>
   <tr style="font-size:11px;">
-    <th class="sticky-l" style="min-width:60px;top:${ROW1_TOP}px;z-index:5;background:#F5F4F0;">일자</th>`;
+    <th class="sticky-l" style="min-width:60px;">일자</th>`;
   visChs.forEach(c=>{
-    th+=`<th style="min-width:75px;color:${c.g==='온라인'?'#2563EB':'#7C3AED'};top:${ROW1_TOP}px;background:#F5F4F0;">${c.n}</th>`;
+    th+=`<th style="min-width:75px;color:${c.g==='온라인'?'#2563EB':'#7C3AED'};">${c.n}</th>`;
   });
-  th+=`<th style="min-width:80px;top:${ROW1_TOP}px;background:#F5F4F0;">합계</th></tr>`;
+  th+=`<th style="min-width:80px;">합계</th></tr>`;
 
   // 누계 고정 행
   th+=`<tr style="background:#E8F5E9;font-size:11px;font-weight:700;">
-    <th class="sticky-l" style="background:#E8F5E9;color:#1B5E20;text-align:left;font-weight:700;top:${ROW2_TOP}px;z-index:5;">~${mo}/${todayDay}<br><span style="font-size:9px;font-weight:400;">누계</span></th>`;
+    <th class="sticky-l" style="background:#E8F5E9;color:#1B5E20;text-align:left;font-weight:700;">~${mo}/${todayDay}<br><span style="font-size:9px;font-weight:400;">누계</span></th>`;
   visChs.forEach(c=>{
-    th+=`<th style="text-align:right;color:#1B5E20;background:#E8F5E9;top:${ROW2_TOP}px;">${cumul[c.k].toLocaleString()}</th>`;
+    th+=`<th style="text-align:right;color:#1B5E20;background:#E8F5E9;">${cumul[c.k].toLocaleString()}</th>`;
   });
-  th+=`<th style="text-align:right;color:#1B5E20;background:#E8F5E9;border-bottom:2px solid #A5D6A7;top:${ROW2_TOP}px;">${cumulTotal.toLocaleString()}</th></tr>`;
+  th+=`<th style="text-align:right;color:#1B5E20;background:#E8F5E9;border-bottom:2px solid #A5D6A7;">${cumulTotal.toLocaleString()}</th></tr>`;
 
   // 잔여 일평균 고정 행 (진행중 월만)
   if(!isClosedMo){
     th+=`<tr style="background:#FFF8E1;font-size:11px;">
-      <th class="sticky-l" style="background:#FFF8E1;color:#E65100;text-align:left;font-weight:700;top:${ROW3_TOP}px;z-index:5;">잔여 일평균<br><span style="font-size:9px;font-weight:400;">(${remDays}일)</span></th>`;
+      <th class="sticky-l" style="background:#FFF8E1;color:#E65100;text-align:left;font-weight:700;">잔여 일평균<br><span style="font-size:9px;font-weight:400;">(${remDays}일)</span></th>`;
     let needTotal=0;
     visChs.forEach(c=>{
       const goal=chMonthGoal(c.k);
       const need=chDailyNeed(c.k,cumul[c.k]);
       needTotal+=need;
       const rate=goal>0?cumul[c.k]/goal:null;
-      th+=`<th style="text-align:right;color:#E65100;background:#FFF8E1;font-weight:400;top:${ROW3_TOP}px;">${need>0?need.toLocaleString()+'천':'✅'}${rate!==null?`<div style="font-size:9px;color:#888;">목 ${goal.toLocaleString()}천 (${fp(rate)})</div>`:''}</th>`;
+      th+=`<th style="text-align:right;color:#E65100;background:#FFF8E1;font-weight:400;">${need>0?need.toLocaleString()+'천':'✅'}${rate!==null?`<div style="font-size:9px;color:#888;">목 ${goal.toLocaleString()}천 (${fp(rate)})</div>`:''}</th>`;
     });
-    th+=`<th style="text-align:right;color:#E65100;background:#FFF8E1;font-weight:700;border-bottom:2px solid #FFE082;top:${ROW3_TOP}px;">${needTotal>0?needTotal.toLocaleString()+'천':'✅'}</th></tr>`;
+    th+=`<th style="text-align:right;color:#E65100;background:#FFF8E1;font-weight:700;border-bottom:2px solid #FFE082;">${needTotal>0?needTotal.toLocaleString()+'천':'✅'}</th></tr>`;
   }
   th+=`</thead>`;
 
@@ -1532,6 +1564,572 @@ function renderDailyTable(){
     });
   });
 }
+// ══════════════════════════════════════════════
+//  WEEKLY REPORT
+// ══════════════════════════════════════════════
+let ST_WEEKLY = { weekStart: null, grp: 'all' };
+
+// Date helpers — 월요일 시작 기준
+function getMonday(date){
+  const d = new Date(date);
+  const day = d.getDay();           // 0=일, 1=월, ..., 6=토
+  const diff = day===0 ? -6 : 1-day;
+  d.setDate(d.getDate()+diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+// 로컬 타임존 안전 ISO (toISOString은 UTC 기준이라 KST와 1일 어긋남 → 드롭다운 선택 깨짐)
+function toLocalISO(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function addDays(date,n){
+  const d=new Date(date);
+  d.setDate(d.getDate()+n);
+  return d;
+}
+function fmtMD(d){ return `${d.getMonth()+1}/${d.getDate()}`; }
+function fmtWeekLabel(monday){
+  const sun=addDays(monday,6);
+  return `${monday.getFullYear()}년 ${fmtMD(monday)}~${fmtMD(sun)}`;
+}
+// ISO week-ish: 해당 월의 몇 번째 주인지 (목요일 기준 — 어느 달에 더 가까운지)
+function getWeekOfMonth(monday){
+  const thu=addDays(monday,3);
+  const firstDay=new Date(thu.getFullYear(),thu.getMonth(),1);
+  const firstThu=getMonday(firstDay); // 그 달의 첫 월요일
+  if(firstDay.getDay()>4) firstThu.setDate(firstThu.getDate()+7);
+  const wk=Math.floor((thu-firstThu)/(7*86400000))+1;
+  return {y:thu.getFullYear(),m:thu.getMonth()+1,w:wk};
+}
+
+// 일별 매출 1건 조회 (천원 아닌 원 단위 그대로 반환)
+function getDailyVal(date, chKey){
+  const yr=String(date.getFullYear());
+  const mo=date.getMonth()+1;
+  const day=date.getDate()-1;
+  const v = DAILY_DETAIL[yr]?.[String(mo)]?.[chKey]?.[day]
+         ?? DAILY_DETAIL[yr]?.[mo]?.[chKey]?.[day];
+  return (v && v>0) ? v : 0;
+}
+// 주간 채널 매출 합계
+function getWeekChSales(monday, chKey){
+  let total=0, days=0;
+  for(let i=0;i<7;i++){
+    const d=addDays(monday,i);
+    const v=getDailyVal(d,chKey);
+    if(v>0){ total+=v; days++; }
+  }
+  return {total, days};
+}
+
+// 사용 가능한 주차 목록 (가장 오래된 일별 데이터부터 어제 포함 주까지)
+function getAvailableWeeks(){
+  // 시작점: 2025-01-06 (2025 첫 월요일)
+  let cur = new Date(2025,0,6);
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const yesterday=addDays(today,-1);
+  const lastMonday=getMonday(yesterday);
+
+  const weeks=[];
+  while(cur<=lastMonday){
+    weeks.push(new Date(cur));
+    cur=addDays(cur,7);
+  }
+  return weeks;
+}
+
+// VAT-aware 표시값
+function wvDisp(n){ return ST.vat ? n : n/VAT_R; }
+
+function renderWeeklyReport(){
+  const weeks = getAvailableWeeks();
+  if(weeks.length===0){
+    document.getElementById('weeklyTblWrap').innerHTML=`<div class="wr-empty">사용 가능한 일별 데이터가 없습니다.</div>`;
+    return;
+  }
+  // 초기값: 가장 최근 마감 주 (어제 포함 주)
+  if(!ST_WEEKLY.weekStart){
+    ST_WEEKLY.weekStart = weeks[weeks.length-1];
+  }
+
+  // 드롭다운 채우기 — toLocalISO 사용 (UTC 변환 시 KST에서 1일 어긋남 방지)
+  const sel=document.getElementById('weeklySelect');
+  const curIso=toLocalISO(ST_WEEKLY.weekStart);
+  sel.innerHTML = weeks.slice().reverse().map(m=>{
+    const iso=toLocalISO(m);
+    const wkInfo=getWeekOfMonth(m);
+    const lbl=`${fmtWeekLabel(m)} · ${wkInfo.m}월 ${wkInfo.w}주차`;
+    return `<option value="${iso}"${iso===curIso?' selected':''}>${lbl}</option>`;
+  }).join('');
+
+  // 채널 필터 버튼
+  document.querySelectorAll('#weeklyChFilter .gf-btn').forEach(b=>{
+    b.classList.toggle('on', b.dataset.wg===ST_WEEKLY.grp);
+  });
+
+  const monday = ST_WEEKLY.weekStart;
+  const sunday = addDays(monday,6);
+  const prevMon = addDays(monday,-7);
+
+  // 이번 주가 진행중인지 (일요일이 어제보다 미래면 진행중)
+  const today=new Date(); today.setHours(0,0,0,0);
+  const isOngoing = sunday >= today;
+  const lastClosedDay = isOngoing ? addDays(today,-1) : sunday; // 데이터 있는 마지막 날
+
+  // 채널별 집계
+  const visChs = DAILY_CHS.filter(c=>{
+    if(ST_WEEKLY.grp==='all') return true;
+    return c.g === (ST_WEEKLY.grp==='online'?'온라인':'오프라인');
+  });
+
+  const rows = visChs.map(c=>{
+    const cur = getWeekChSales(monday, c.k);
+    const prev = getWeekChSales(prevMon, c.k);
+    const wow = prev.total>0 ? (cur.total-prev.total)/prev.total : null;
+    const avg = cur.days>0 ? cur.total/cur.days : 0;
+    return {
+      k:c.k, n:c.n, g:c.g,
+      cur:cur.total, prev:prev.total,
+      curDays:cur.days, prevDays:prev.days,
+      wow, avg
+    };
+  });
+
+  // 합계
+  const totCur = rows.reduce((s,r)=>s+r.cur,0);
+  const totPrev = rows.reduce((s,r)=>s+r.prev,0);
+  const totWoW = totPrev>0 ? (totCur-totPrev)/totPrev : null;
+  const daysIn = isOngoing ? Math.max(1, Math.floor((lastClosedDay-monday)/86400000)+1) : 7;
+  const totAvg = totCur/daysIn;
+
+  // 메타 정보
+  const wkInfo = getWeekOfMonth(monday);
+  document.getElementById('weeklyMeta').textContent =
+    `${wkInfo.y}년 ${wkInfo.m}월 ${wkInfo.w}주차 · ${fmtMD(monday)}(월) ~ ${fmtMD(sunday)}(일)`
+    + (isOngoing ? ` · 진행중 (~${fmtMD(lastClosedDay)} 기준, ${daysIn}일치)` : ' · 마감 완료 (7일치)');
+
+  // KPI 카드
+  const vatLbl = ST.vat?'(+VAT)':'(-VAT)';
+  const wowCls = totWoW===null?'muted':(totWoW>=0?'pos':'neg');
+  const wowStr = totWoW===null?'—':(totWoW>=0?'+':'')+(totWoW*100).toFixed(1)+'%';
+  const grpLbl = ST_WEEKLY.grp==='all'?'전채널':ST_WEEKLY.grp==='online'?'온라인':'오프라인';
+
+  // 활성 채널 (매출 발생) 수
+  const activeChs = rows.filter(r=>r.cur>0).length;
+
+  document.getElementById('weeklyKpis').innerHTML = `
+    <div class="kpi">
+      <div class="kpi-lbl">주간 매출 ${vatLbl}</div>
+      <div class="kpi-val">${fm(wvDisp(totCur),'ch')}</div>
+      <div class="kpi-sub">${grpLbl} · ${activeChs}/${rows.length}개 채널</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">전주 매출 ${vatLbl}</div>
+      <div class="kpi-val muted">${totPrev>0?fm(wvDisp(totPrev),'ch'):'—'}</div>
+      <div class="kpi-sub">${fmtMD(prevMon)}~${fmtMD(addDays(prevMon,6))}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">WoW 증감률</div>
+      <div class="kpi-val ${wowCls}">${wowStr}</div>
+      <div class="kpi-sub">전주 대비</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">일평균 매출</div>
+      <div class="kpi-val">${fm(wvDisp(totAvg),'ch')}</div>
+      <div class="kpi-sub">${daysIn}일 평균</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">최고 일매출</div>
+      <div class="kpi-val" style="color:#059669;">${(() => {
+        let max=0, maxDay=null;
+        for(let i=0;i<7;i++){
+          const d=addDays(monday,i);
+          if(d>lastClosedDay) break;
+          const t=visChs.reduce((s,c)=>s+getDailyVal(d,c.k),0);
+          if(t>max){max=t;maxDay=d;}
+        }
+        return max>0 ? fm(wvDisp(max),'ch') : '—';
+      })()}</div>
+      <div class="kpi-sub">${(() => {
+        let max=0, maxDay=null;
+        for(let i=0;i<7;i++){
+          const d=addDays(monday,i);
+          if(d>lastClosedDay) break;
+          const t=visChs.reduce((s,c)=>s+getDailyVal(d,c.k),0);
+          if(t>max){max=t;maxDay=d;}
+        }
+        return maxDay ? `${fmtMD(maxDay)} (${['일','월','화','수','목','금','토'][maxDay.getDay()]})` : '—';
+      })()}</div>
+    </div>
+  `;
+
+  // 채널별 주간 매출 + WoW 테이블
+  let th = `<thead><tr>
+    <th class="sticky-l" style="min-width:120px;">채널</th>
+    <th>이번 주</th>
+    <th>전주</th>
+    <th>WoW Δ</th>
+    <th>WoW %</th>
+    <th>일평균</th>
+    <th style="min-width:60px;">활동일</th>
+  </tr></thead>`;
+
+  // DAILY_CHS 순서 그대로 (채널별 매출 탭과 동일한 순서)
+  let tb = '<tbody>';
+  let lastGrp = null;
+  rows.forEach(r=>{
+    // 그룹 헤더 (온라인/오프라인 변경 지점에 삽입)
+    if(r.g !== lastGrp){
+      tb += `<tr class="grp-hd"><td class="sticky-l" colspan="7">${r.g}</td></tr>`;
+      lastGrp = r.g;
+    }
+    const wowVal = r.wow;
+    const wowCls = wowVal===null?'flat':wowVal>=0?'up':'dn';
+    const wowStr = wowVal===null?'—':(wowVal>=0?'+':'')+(wowVal*100).toFixed(1)+'%';
+    const delta = r.cur - r.prev;
+    const deltaStr = r.prev>0 ? ((delta>=0?'+':'')+fm(wvDisp(delta),'ch')) : '—';
+    const grpColor = r.g==='온라인'?'#2563EB':'#7C3AED';
+    tb += `<tr>
+      <td class="sticky-l">
+        <span class="ch-name" style="color:${grpColor};">${r.n}</span>
+        <span class="ch-sub">${r.g}</span>
+      </td>
+      <td style="font-weight:700;">${r.cur>0?fm(wvDisp(r.cur),'ch'):'—'}</td>
+      <td class="muted">${r.prev>0?fm(wvDisp(r.prev),'ch'):'—'}</td>
+      <td class="wr-tbl-wow ${wowCls}">${deltaStr}</td>
+      <td class="wr-tbl-wow ${wowCls}">${wowStr}</td>
+      <td>${r.cur>0?fm(wvDisp(r.avg),'ch'):'—'}</td>
+      <td>${r.curDays}/7일</td>
+    </tr>`;
+  });
+
+  // 합계 행
+  const totDelta = totCur - totPrev;
+  const totDeltaStr = totPrev>0 ? ((totDelta>=0?'+':'')+fm(wvDisp(totDelta),'ch')) : '—';
+  const totWowCls = totWoW===null?'flat':totWoW>=0?'up':'dn';
+  const totWowStr = totWoW===null?'—':(totWoW>=0?'+':'')+(totWoW*100).toFixed(1)+'%';
+
+  tb += `<tr class="grand-ttl">
+    <td class="sticky-l">합계 (${grpLbl})</td>
+    <td style="color:#111;">${fm(wvDisp(totCur),'ch')}</td>
+    <td class="muted">${fm(wvDisp(totPrev),'ch')}</td>
+    <td class="wr-tbl-wow ${totWowCls}">${totDeltaStr}</td>
+    <td class="wr-tbl-wow ${totWowCls}">${totWowStr}</td>
+    <td>${fm(wvDisp(totAvg),'ch')}</td>
+    <td>—</td>
+  </tr>`;
+
+  tb += '</tbody>';
+  document.getElementById('weeklyTblWrap').innerHTML = `<table>${th}${tb}</table>`;
+
+  // 신규: 상품 TOP 섹션도 함께 렌더
+  renderWeeklyTopProducts();
+}
+
+// ══════════════════════════════════════════════
+//  WEEKLY TOP PRODUCTS (상품 TOP)
+// ══════════════════════════════════════════════
+let ST_TOP = {
+  view: 'weekly',   // 'weekly' | 'channel'
+  season: null,
+  channel: 'cafe24',
+  data: null,       // {weekNumber, updated, seasons:[...]}
+};
+const CH_LBL_TOP = {
+  cafe24: '자사몰', mss: '무신사', cm29: '29CM', offline: '오프라인', etc: 'ETC'
+};
+
+function renderChannelBar(ch){
+  const total = (ch.cafe24||0)+(ch.mss||0)+(ch.cm29||0)+(ch.offline||0)+(ch.etc||0);
+  if(total===0) return '<span class="muted" style="font-size:10px;">—</span>';
+  const segs = [
+    {k:'cafe24', v:ch.cafe24||0},
+    {k:'mss',    v:ch.mss||0},
+    {k:'cm29',   v:ch.cm29||0},
+    {k:'offline',v:ch.offline||0},
+    {k:'etc',    v:ch.etc||0},
+  ];
+  const online = (ch.cafe24||0)+(ch.mss||0)+(ch.cm29||0);
+  const offline = (ch.offline||0);
+  const onlinePct = Math.round(online/total*100);
+  const offlinePct = Math.round(offline/total*100);
+
+  let html = '<div class="cs-bar">';
+  segs.forEach(s=>{
+    const pct = s.v/total*100;
+    if(pct<0.5) return;
+    const label = pct>=9 ? Math.round(pct)+'%' : '';
+    html += `<div class="cs-seg ${s.k}" style="width:${pct}%;" title="${CH_LBL_TOP[s.k]}: ${s.v.toLocaleString()} (${pct.toFixed(1)}%)">${label}</div>`;
+  });
+  html += '</div>';
+  html += `<div class="cs-onoff"><span class="on">온라인 ${onlinePct}%</span> · <span class="off">오프라인 ${offlinePct}%</span></div>`;
+  return html;
+}
+
+function renderChannelLegend(){
+  return `<div class="cs-legend">
+    <span class="cs-legend-item"><span class="cs-dot" style="background:#2563EB;"></span>자사몰</span>
+    <span class="cs-legend-item"><span class="cs-dot" style="background:#7C3AED;"></span>무신사</span>
+    <span class="cs-legend-item"><span class="cs-dot" style="background:#0891B2;"></span>29CM</span>
+    <span class="cs-legend-item"><span class="cs-dot" style="background:#059669;"></span>오프라인</span>
+    <span class="cs-legend-item"><span class="cs-dot" style="background:#9CA3AF;"></span>ETC</span>
+  </div>`;
+}
+
+function renderWeeklyTopProducts(){
+  const card = document.getElementById('weeklyTopCard');
+  if(!card) return;
+
+  // 데이터 없을 때 안내문
+  if(!ST_TOP.data || !ST_TOP.data.seasons || ST_TOP.data.seasons.length===0){
+    document.getElementById('weeklyTopContent').innerHTML = `
+      <div style="text-align:center;padding:30px;color:#aaa;font-size:12px;line-height:1.6;">
+        📦 상품 TOP 데이터를 아직 받지 못했어요.<br>
+        <span style="font-size:11px;">Power Automate 플로우에 <code>GetWeeklyTopProducts</code> 스크립트를 추가하면 매주 자동 업데이트됩니다.</span>
+      </div>`;
+    document.getElementById('weeklyTopMeta').textContent = '';
+    document.getElementById('weeklyTopChannelFilters').style.display = 'none';
+    return;
+  }
+
+  const data = ST_TOP.data;
+  const wk = data.weekNumber || '-';
+  const upd = data.updated || '';
+  document.getElementById('weeklyTopMeta').textContent = `W${wk} 기준${upd?' · 업데이트 '+upd:''}`;
+
+  // 뷰 토글 상태 반영
+  document.querySelectorAll('#weeklyTopViewFilter .gf-btn').forEach(b=>{
+    b.classList.toggle('on', b.dataset.tv===ST_TOP.view);
+  });
+
+  if(ST_TOP.view==='weekly'){
+    renderTopWeekly();
+  } else {
+    renderTopChannel();
+  }
+}
+
+function renderTopWeekly(){
+  // 모든 시즌 합쳐서 weekly 기준 정렬 → TOP 20
+  const all = [];
+  ST_TOP.data.seasons.forEach(s=>{
+    s.items.forEach(it=>all.push({...it, seasonKey:s.key, seasonName:s.name}));
+  });
+  all.sort((a,b)=>b.weekly-a.weekly);
+  const top = all.slice(0,20);
+
+  document.getElementById('weeklyTopChannelFilters').style.display = 'none';
+
+  const wkNum = ST_TOP.data.weekNumber;
+  let th = `<thead><tr>
+    <th style="min-width:30px;">#</th>
+    <th style="min-width:180px;">상품</th>
+    <th>이번 주<br><span style="font-size:9px;color:#aaa;font-weight:400;">W${wkNum}</span></th>
+    <th>전주<br><span style="font-size:9px;color:#aaa;font-weight:400;">W${wkNum-1}</span></th>
+    <th>WoW</th>
+    <th>누적</th>
+    <th style="min-width:200px;">채널 비중<br><span style="font-size:9px;color:#aaa;font-weight:400;">(누적 기준)</span></th>
+    <th>시즌</th>
+  </tr></thead>`;
+
+  let tb = '<tbody>';
+  top.forEach((it,idx)=>{
+    const wow = it.prevWeek>0 ? (it.weekly-it.prevWeek)/it.prevWeek : null;
+    const wowCls = wow===null?'flat':wow>=0?'up':'dn';
+    const wowStr = wow===null?'—':(wow>=0?'+':'')+(wow*100).toFixed(0)+'%';
+    const rankCls = idx<3 ? 'wtop-rank top3' : 'wtop-rank';
+    const rankMark = idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':(idx+1);
+
+    tb += `<tr>
+      <td class="${rankCls}">${rankMark}</td>
+      <td>
+        <span class="wtop-name">${it.name}</span>
+        <span class="wtop-color">${it.color} · ${it.code}</span>
+      </td>
+      <td style="font-weight:700;color:#2563EB;">${it.weekly.toLocaleString()}</td>
+      <td class="muted">${it.prevWeek>0?it.prevWeek.toLocaleString():'—'}</td>
+      <td class="wr-tbl-wow ${wowCls}">${wowStr}</td>
+      <td>${it.cumulative.toLocaleString()}</td>
+      <td>${renderChannelBar(it.ch)}</td>
+      <td><span style="font-size:10px;color:#888;">${it.seasonName}</span></td>
+    </tr>`;
+  });
+  tb += '</tbody>';
+
+  document.getElementById('weeklyTopContent').innerHTML = `
+    <div class="wtop-banner">
+      <strong>이번 주(W${wkNum}) TOP 20</strong> — 전 시즌 통합, 주간 판매수량 기준 정렬
+    </div>
+    <div class="tbl-wrap"><table class="wtop-tbl">${th}${tb}</table></div>
+    ${renderChannelLegend()}
+  `;
+}
+
+function renderTopChannel(){
+  const fbox = document.getElementById('weeklyTopChannelFilters');
+  fbox.style.display = '';
+
+  // 기본값
+  if(!ST_TOP.season || !ST_TOP.data.seasons.find(s=>s.key===ST_TOP.season)){
+    ST_TOP.season = ST_TOP.data.seasons[0]?.key;
+  }
+  if(!ST_TOP.channel) ST_TOP.channel = 'cafe24';
+
+  // 필터 UI
+  fbox.innerHTML = `
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <span style="font-size:10px;color:#666;font-weight:700;">시즌</span>
+      <select id="topSeasonSel" style="padding:4px 10px;border-radius:6px;border:1.5px solid #E2E0DB;font-size:12px;font-family:inherit;background:#fff;cursor:pointer;">
+        ${ST_TOP.data.seasons.map(s=>`<option value="${s.key}"${s.key===ST_TOP.season?' selected':''}>${s.name}</option>`).join('')}
+      </select>
+      <span style="font-size:10px;color:#666;font-weight:700;margin-left:8px;">채널</span>
+      <div class="grp-filter" id="topChSel">
+        ${['cafe24','mss','cm29','offline'].map(ch=>
+          `<button class="gf-btn${ST_TOP.channel===ch?' on':''}" data-ch="${ch}" style="${ST_TOP.channel===ch?(ch==='cafe24'?'background:#2563EB;color:#fff;border-color:#2563EB;':ch==='mss'?'background:#7C3AED;color:#fff;border-color:#7C3AED;':ch==='cm29'?'background:#0891B2;color:#fff;border-color:#0891B2;':'background:#059669;color:#fff;border-color:#059669;'):''}">${CH_LBL_TOP[ch]}</button>`
+        ).join('')}
+      </div>
+    </div>
+  `;
+
+  // 이벤트 바인딩
+  document.getElementById('topSeasonSel').addEventListener('change',e=>{
+    ST_TOP.season = e.target.value;
+    renderTopChannel();
+  });
+  fbox.querySelectorAll('#topChSel .gf-btn').forEach(b=>b.addEventListener('click',()=>{
+    ST_TOP.channel = b.dataset.ch;
+    renderTopChannel();
+  }));
+
+  // 데이터 추출
+  const season = ST_TOP.data.seasons.find(s=>s.key===ST_TOP.season);
+  if(!season){
+    document.getElementById('weeklyTopContent').innerHTML = '<div class="wr-empty">해당 시즌 데이터가 없어요.</div>';
+    return;
+  }
+  const ch = ST_TOP.channel;
+  const sorted = season.items.slice().sort((a,b)=>(b.ch[ch]||0)-(a.ch[ch]||0));
+  const top10 = sorted.slice(0,10);
+  const chTotal = season.items.reduce((s,it)=>s+(it.ch[ch]||0),0);
+
+  let th = `<thead><tr>
+    <th style="min-width:30px;">#</th>
+    <th style="min-width:180px;">상품</th>
+    <th>${CH_LBL_TOP[ch]} 누적</th>
+    <th>시즌 내 비중</th>
+    <th>전체 누적</th>
+    <th style="min-width:200px;">채널 비중</th>
+  </tr></thead>`;
+
+  let tb = '<tbody>';
+  top10.forEach((it,idx)=>{
+    const chSales = it.ch[ch]||0;
+    const seasonShare = chTotal>0 ? chSales/chTotal : 0;
+    const rankCls = idx<3 ? 'wtop-rank top3' : 'wtop-rank';
+    const rankMark = idx===0?'🥇':idx===1?'🥈':idx===2?'🥉':(idx+1);
+    tb += `<tr>
+      <td class="${rankCls}">${rankMark}</td>
+      <td>
+        <span class="wtop-name">${it.name}</span>
+        <span class="wtop-color">${it.color} · ${it.code}</span>
+      </td>
+      <td style="font-weight:700;color:#2563EB;">${chSales.toLocaleString()}</td>
+      <td>${(seasonShare*100).toFixed(1)}%</td>
+      <td>${it.cumulative.toLocaleString()}</td>
+      <td>${renderChannelBar(it.ch)}</td>
+    </tr>`;
+  });
+  tb += '</tbody>';
+
+  document.getElementById('weeklyTopContent').innerHTML = `
+    <div class="wtop-banner">
+      <strong>${season.name}</strong> · <strong>${CH_LBL_TOP[ch]}</strong> TOP 10 —
+      해당 시즌의 ${CH_LBL_TOP[ch]} 누적 판매 합계 <strong>${chTotal.toLocaleString()}개</strong>
+    </div>
+    <div class="tbl-wrap"><table class="wtop-tbl">${th}${tb}</table></div>
+    ${renderChannelLegend()}
+  `;
+}
+
+// ══════════════════════════════════════════════
+//  MONTH PROGRESS STRIP (채널별 매출 - 진행중 월 요약)
+// ══════════════════════════════════════════════
+function renderMonthProgressStrip(){
+  const el = document.getElementById('monthProgressStrip');
+  if(!el) return;
+
+  // 채널별 매출 뷰에서만 표시
+  if(ST.view !== 'ch'){ el.style.display='none'; return; }
+
+  const chKeys = filteredChKeys();
+  const i = CURRENT_MONTH;
+
+  // 진행중 월 실적 / 목표 (DT-aware, 그룹 필터 반영)
+  let mtdAct = 0;
+  chKeys.forEach(k => {
+    const v = chDispEff(k, i, '2026');
+    if(v) mtdAct += v;
+  });
+  const moGoal = chKeys.reduce((s,k) => s + (chGoalEff(k, i, '2026') || 0), 0);
+
+  if(moGoal === 0){ el.style.display='none'; return; }
+
+  // 일수 계산
+  const today = new Date();
+  const dayOfMonth = today.getDate();          // 오늘 일자
+  const daysPassed = Math.max(1, dayOfMonth-1); // 어제까지 경과일
+  const totalDays = DIM[i];
+  const daysRemaining = Math.max(0, totalDays - daysPassed);
+
+  // 지표
+  const rate = mtdAct / moGoal;
+  const remaining = Math.max(0, moGoal - mtdAct);
+  const dailyNeeded = daysRemaining > 0 ? remaining / daysRemaining : 0;
+  const currentPace = mtdAct / daysPassed;
+  const projected = currentPace * totalDays;
+  const projRate = moGoal>0 ? projected / moGoal : 0;
+
+  // 평가: 현재 페이스 유지 시 도달 예상치
+  let verdict, verdictCls;
+  if(rate >= 1.0){
+    verdict = '✅ 목표 달성'; verdictCls = 'verdict-good';
+  } else if(projRate >= 1.0){
+    verdict = '✅ 달성 가능';  verdictCls = 'verdict-good';
+  } else if(projRate >= 0.9){
+    verdict = '⚠️ 노력 필요';  verdictCls = 'verdict-mid';
+  } else {
+    verdict = '❌ 달성 어려움'; verdictCls = 'verdict-bad';
+  }
+  const verdictSub = `예상 ${fm(projected,'ch')} (${(projRate*100).toFixed(0)}%)`;
+
+  // 라벨
+  const grpLblMap = {all:'전체', online:'온라인', offline:'오프라인', ws:'도매'};
+  const grpLbl = grpLblMap[ST.grp] || '전체';
+  const dtNote = !ST.dt ? ' (DT 제외)' : '';
+
+  el.style.display = '';
+  el.innerHTML = `
+    <div class="mps-row">
+      <div class="mps-tag">
+        🎯 ${MO[i]} 진행중 · ${grpLbl}${dtNote}
+        <span class="mps-sub">${YESTERDAY_STR} 기준</span>
+      </div>
+      <div class="mps-stats">
+        <span>실적 <strong style="color:#2563EB;">${fm(mtdAct,'ch')}</strong> / 목표 <strong>${fm(moGoal,'ch')}</strong> (<strong>${(rate*100).toFixed(1)}%</strong>)</span>
+        <span class="mps-sep">·</span>
+        <span>잔여 <strong>${fm(remaining,'ch')}</strong> (${((1-rate)*100).toFixed(1)}%)</span>
+        <span class="mps-sep">·</span>
+        <span>남은 ${daysRemaining}일, 일평균 <strong style="color:#D97706;">${fm(dailyNeeded,'ch')}</strong> 필요</span>
+      </div>
+      <div class="mps-verdict ${verdictCls}">
+        ${verdict}
+        <div class="mps-sub">${verdictSub}</div>
+      </div>
+    </div>
+  `;
+}
+
 function renderFn(){
   const vatNote=ST.vat?'<strong>현재 +VAT 기준</strong> 표시':'<strong>현재 -VAT 기준</strong> 표시';
   const dtNote=ST.dt?'DT 도매 목표 <strong>포함</strong>':'DT 도매 목표 <strong style="color:#92400E;">제외</strong> (확정 실적은 표시되나 합산에서 제외)';
@@ -1617,34 +2215,46 @@ function render(){
 
   // 뷰별 섹션 토글
   const isDaily = ST.view==='daily';
+  const isWeekly = ST.view==='weekly';
   const isCh = ST.view==='ch';
 
-  // 글로벌 KPI — 일매출 탭에서는 숨김
-  document.getElementById('kpis').style.display = isDaily?'none':'';
+  // 글로벌 KPI — 일매출/주간 리포트 탭에서는 숨김
+  document.getElementById('kpis').style.display = (isDaily||isWeekly)?'none':'';
 
   // 메인 차트
-  document.getElementById('chartCard').style.display = isDaily?'none':'';
+  document.getElementById('chartCard').style.display = (isDaily||isWeekly)?'none':'';
 
   // YoY 비교 차트 — 채널 뷰에서만 표시
-  document.getElementById('yoyChartCard').style.display = isCh&&!isDaily?'':'none';
+  document.getElementById('yoyChartCard').style.display = isCh?'':'none';
 
   // 일매출 섹션
   document.getElementById('dailySection').style.display = isDaily?'block':'none';
 
+  // 주간 리포트 섹션
+  document.getElementById('weeklySection').style.display = isWeekly?'block':'none';
+
   // 나머지 카드 (테이블 등)
   document.querySelectorAll('.card').forEach(c=>{
-    if(c.id==='chartCard'||c.id==='yoyChartCard'||c.closest('#dailySection')||c.closest('#apPanel')) return;
-    c.style.display=isDaily?'none':'';
+    if(c.id==='chartCard'||c.id==='yoyChartCard'
+       ||c.closest('#dailySection')||c.closest('#weeklySection')
+       ||c.closest('#apPanel')) return;
+    c.style.display=(isDaily||isWeekly)?'none':'';
   });
 
   if(isDaily){
     renderDailyKPIs();
     renderDailyTable();
+  } else if(isWeekly){
+    renderWeeklyReport();
   } else if(isCh){
     renderChTable();
     renderYoyChart();
+    renderMonthProgressStrip();
   } else {
     renderPLTable();
+    // 매장 손익 뷰에서는 진행중 월 스트립 숨김
+    const mps=document.getElementById('monthProgressStrip');
+    if(mps) mps.style.display='none';
   }
   renderAssump();
   renderFn();
@@ -1655,7 +2265,24 @@ function render(){
 // ══════════════════════════════════════════════
 // year tabs removed
 document.querySelectorAll('.vtab').forEach(t=>t.addEventListener('click',()=>{ST.view=t.dataset.v;save();render();}));
-document.querySelectorAll('.gf-btn').forEach(b=>b.addEventListener('click',()=>{ST.grp=b.dataset.g;render();}));
+// 글로벌 그룹 필터 (data-g 속성 가진 것만) — daily, weekly의 채널 필터와 분리
+document.querySelectorAll('.gf-btn[data-g]').forEach(b=>b.addEventListener('click',()=>{ST.grp=b.dataset.g;render();}));
+// 주간 리포트 채널 필터
+document.querySelectorAll('#weeklyChFilter .gf-btn').forEach(b=>b.addEventListener('click',()=>{
+  ST_WEEKLY.grp=b.dataset.wg;
+  renderWeeklyReport();
+}));
+// 상품 TOP 뷰 토글
+document.querySelectorAll('#weeklyTopViewFilter .gf-btn').forEach(b=>b.addEventListener('click',()=>{
+  ST_TOP.view=b.dataset.tv;
+  renderWeeklyTopProducts();
+}));
+// 주간 리포트 주차 선택
+document.getElementById('weeklySelect').addEventListener('change',e=>{
+  const [y,m,d]=e.target.value.split('-').map(Number);
+  ST_WEEKLY.weekStart=new Date(y,m-1,d);
+  renderWeeklyReport();
+});
 
 document.getElementById('btnVat').addEventListener('click',()=>{ST.vat=!ST.vat;render();});
 document.getElementById('btnDt').addEventListener('click',()=>{ST.dt=!ST.dt;render();});
@@ -1714,6 +2341,11 @@ function mergeData(json){
       if(raw.currentYear) DAILY_CUR_YEAR=raw.currentYear;
       ST_DAILY.yr=String(DAILY_CUR_YEAR);
       ST_DAILY.month=DAILY_CUR_MONTH;
+    }
+    // topProducts 반영
+    if(json.topProducts){
+      const raw = typeof json.topProducts==='string' ? JSON.parse(json.topProducts) : json.topProducts;
+      ST_TOP.data = raw;
     }
     // 업데이트 날짜 표시
     if(json.updated&&json.updated!=='init'){
