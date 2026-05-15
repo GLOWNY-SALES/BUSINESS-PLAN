@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>글로니 경영 대시보드 2025–2026</title>
+<title>📊 Glowny Sales Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -214,9 +214,114 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
   .ap-grid{grid-template-columns:1fr;}
   .wr-bw{grid-template-columns:1fr;}
 }
+
+/* ── Login Gate ── */
+#authGate{position:fixed;inset:0;background:#111;display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;}
+.auth-box{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:40px 36px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+.auth-brand{font-size:10px;color:#666;letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px;}
+.auth-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:6px;}
+.auth-sub{font-size:12px;color:#888;margin-bottom:28px;line-height:1.6;}
+.auth-lbl{font-size:11px;color:#aaa;font-weight:600;margin-bottom:8px;display:block;}
+.auth-input{width:100%;padding:12px 14px;background:#0a0a0a;border:1.5px solid #2a2a2a;border-radius:8px;color:#fff;font-size:14px;font-family:inherit;transition:border-color .15s;box-sizing:border-box;}
+.auth-input:focus{outline:none;border-color:#2563EB;}
+.auth-input.err{border-color:#DC2626;animation:shake .4s;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+.auth-btn{width:100%;padding:12px;background:#2563EB;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:16px;font-family:inherit;transition:background .15s;}
+.auth-btn:hover{background:#1D4ED8;}
+.auth-err{font-size:11px;color:#DC2626;margin-top:10px;display:none;font-weight:600;}
+.auth-err.show{display:block;}
+.auth-foot{font-size:10px;color:#555;margin-top:24px;text-align:center;line-height:1.6;}
+.btn-logout{background:transparent;border:1px solid #3a3a3a;color:#aaa;padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-logout:hover{border-color:#DC2626;color:#DC2626;}
 </style>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════════════
+     LOGIN GATE — 3시간 세션 인증
+     ══════════════════════════════════════════════ -->
+<div id="authGate">
+  <div class="auth-box">
+    <div class="auth-brand">Glowny</div>
+    <div class="auth-title">🔒 Sales Dashboard</div>
+    <div class="auth-sub">접근 권한이 있는 임직원만 입장할 수 있습니다.<br>비밀번호를 입력하세요.</div>
+    <label class="auth-lbl">비밀번호</label>
+    <input type="password" id="authInput" class="auth-input" placeholder="••••••••••••" autocomplete="off" autofocus>
+    <button class="auth-btn" id="authBtn">입장</button>
+    <div class="auth-err" id="authErr">비밀번호가 올바르지 않습니다.</div>
+    <div class="auth-foot">© Glowny · 내부 임직원 전용 시스템</div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  AUTH GATE — SHA-256 해시 검증 + 3h 세션
+// ══════════════════════════════════════════════
+(function(){
+  const PW_HASH='bf01c39ef171b54a9a302c11238b871a6cc8c43c59afeb765d504eb9ea3d3fe6'; // SHA-256
+  const SESSION_KEY='gd_auth';
+  const TTL=3*60*60*1000; // 3h
+
+  // 세션 유효성 검사
+  function isValidSession(){
+    try{
+      const raw=localStorage.getItem(SESSION_KEY);
+      if(!raw) return false;
+      const{h,t}=JSON.parse(raw);
+      if(h!==PW_HASH) return false;
+      if(Date.now()-t>TTL) return false;
+      return true;
+    }catch(e){return false;}
+  }
+
+  async function sha256(s){
+    const buf=new TextEncoder().encode(s);
+    const hash=await crypto.subtle.digest('SHA-256',buf);
+    return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+
+  async function tryAuth(){
+    const inp=document.getElementById('authInput');
+    const err=document.getElementById('authErr');
+    const pw=inp.value;
+    if(!pw){inp.focus();return;}
+    const h=await sha256(pw);
+    if(h===PW_HASH){
+      localStorage.setItem(SESSION_KEY,JSON.stringify({h,t:Date.now()}));
+      document.getElementById('authGate').style.display='none';
+      window.__authenticated=true;
+    } else {
+      err.classList.add('show');
+      inp.classList.add('err');
+      inp.value='';
+      setTimeout(()=>{inp.classList.remove('err');},400);
+      setTimeout(()=>{err.classList.remove('show');},3000);
+      inp.focus();
+    }
+  }
+
+  // 이미 로그인 상태면 게이트 즉시 닫음
+  if(isValidSession()){
+    document.getElementById('authGate').style.display='none';
+    window.__authenticated=true;
+  } else {
+    document.addEventListener('DOMContentLoaded',()=>{
+      document.getElementById('authBtn').addEventListener('click',tryAuth);
+      document.getElementById('authInput').addEventListener('keydown',e=>{
+        if(e.key==='Enter') tryAuth();
+      });
+    });
+  }
+
+  // 로그아웃 함수 (전역)
+  window.__logout=function(){
+    if(confirm('로그아웃 하시겠어요?')){
+      localStorage.removeItem(SESSION_KEY);
+      location.reload();
+    }
+  };
+})();
+</script>
 
 <header class="hd">
   <div class="hd-l">
@@ -232,6 +337,7 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
     </button>
     <button class="btn btn-ghost" id="btnReset">초기화</button>
     <button class="btn btn-blue" id="btnExport">⬇ 저장</button>
+    <button class="btn-logout" onclick="window.__logout()" title="로그아웃">🔒 로그아웃</button>
   </div>
 </header>
 
