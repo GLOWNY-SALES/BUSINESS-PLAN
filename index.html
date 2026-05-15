@@ -154,7 +154,7 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
 <header class="hd">
   <div class="hd-l">
     <div class="hd-brand">Glowny</div>
-    <div class="hd-title">경영 대시보드 2025 – 2026 <span id="updateBadge" style="font-size:10px;font-weight:400;color:#666;margin-left:8px;"></span></div>
+    <div class="hd-title">Sales Dashboard <span id="updateBadge" style="font-size:10px;font-weight:400;color:#666;margin-left:8px;"></span></div>
   </div>
   <div class="hd-r">
     <button class="btn btn-vat" id="btnVat">
@@ -222,6 +222,7 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
   </div>
   <div class="fn" id="fn"></div>
   <div id="dailySection" style="display:none;">
+    <div class="kpis" id="dailyKpis"></div>
     <div class="card">
       <div class="card-hd" style="flex-wrap:wrap;gap:10px;">
         <span class="card-ttl" id="dailyLbl">일매출 현황</span>
@@ -1106,6 +1107,64 @@ function renderAssump(){
 }
 
 // ══════════════════════════════════════════════
+//  DAILY KPIs
+// ══════════════════════════════════════════════
+function renderDailyKPIs(){
+  const mo = ST_DAILY.month;
+  const chFilter = ST_DAILY.ch;
+  const today = new Date();
+  const todayDay = (today.getMonth()+1===mo) ? today.getDate()-1 : DIM[mo-1];
+  const moData = DAILY_DETAIL[String(mo)] || DAILY_DETAIL[mo] || {};
+
+  const visChs = DAILY_CHS.filter(c=> chFilter==='all'||c.g===(chFilter==='online'?'온라인':'오프라인'));
+
+  // MTD 실적 합산 (원)
+  let mtdAct=0;
+  visChs.forEach(c=>{
+    for(let d=0;d<todayDay;d++){
+      const v=moData[c.k]?.[d];
+      if(v&&v>0) mtdAct+=v;
+    }
+  });
+
+  // 월 목표 합산 (원, +VAT)
+  const moGoal=visChs.reduce((s,c)=>s+(G26[c.k]?.[mo-1]||0),0);
+
+  // 전년 동월 MTD (A25 기준 — 월 합산으로 근사)
+  const pyMo=visChs.reduce((s,c)=>s+(A25[c.k]?.[mo-1]||0),0);
+  const yoy=pyMo>0?(mtdAct-pyMo)/pyMo:null;
+  const rate=moGoal>0?mtdAct/moGoal:null;
+  const remDays=DIM[mo-1]-todayDay;
+  const dailyNeed=remDays>0&&moGoal>mtdAct?Math.round((moGoal-mtdAct)/remDays):0;
+
+  const vatLbl='(+VAT)';
+  const chLbl=chFilter==='all'?'전채널':chFilter==='online'?'온라인':'오프라인';
+
+  document.getElementById('dailyKpis').innerHTML=`
+    <div class="kpi">
+      <div class="kpi-lbl">${mo}월 목표 ${vatLbl}</div>
+      <div class="kpi-val">${fm(moGoal,'ch')}</div>
+      <div class="kpi-sub">${chLbl} 합산</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">MTD 실적 ${vatLbl} <span style="font-size:9px;color:#aaa;">(~${mo}/${todayDay})</span></div>
+      <div class="kpi-val" style="color:#2563EB;">${fm(mtdAct,'ch')}</div>
+      <div class="kpi-sub">목표 대비 달성률</div>
+      <div class="kpi-dy ${rate&&rate>=1?'up':'dn'}">${rate?fp(rate):'—'}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">잔여 일평균 필요 매출</div>
+      <div class="kpi-val" style="color:#D97706;">${dailyNeed>0?fm(dailyNeed,'ch'):'✅ 달성'}</div>
+      <div class="kpi-sub">${remDays}일 남음</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">YoY 성장률 <span style="font-size:9px;color:#aaa;">(월 합산 기준)</span></div>
+      <div class="kpi-val ${yoy&&yoy>=0?'pos':'neg'}">${yoy!==null?(yoy>=0?'+':'')+fp(yoy):'—'}</div>
+      <div class="kpi-sub">전년 동월 대비</div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════
 //  DAILY TABLE
 // ══════════════════════════════════════════════
 const DAILY_CHS = [
@@ -1122,36 +1181,34 @@ const DIM=[31,28,31,30,31,30,31,31,30,31,30,31];
 
 function renderDailyTable(){
   const mo = ST_DAILY.month;
-  const chFilter = ST_DAILY.ch; // 'all','online','offline'
+  const chFilter = ST_DAILY.ch;
   const today = new Date();
-  const todayDay = (today.getMonth()+1===mo) ? today.getDate()-1 : DIM[mo-1]; // 어제까지
+  const todayDay = (today.getMonth()+1===mo) ? today.getDate()-1 : DIM[mo-1];
   const totalDays = DIM[mo-1];
   const remDays = totalDays - todayDay;
-  const moData = DAILY_DETAIL[mo] || {};
+  const moData = DAILY_DETAIL[String(mo)] || DAILY_DETAIL[mo] || {};
 
-  // 월 필터 버튼
-  const months = Object.keys(DAILY_DETAIL).map(Number).sort((a,b)=>b-a);
-  const monthBtns = months.map(m=>
-    `<button class="gf-btn${ST_DAILY.month===m?' on':''}" onclick="ST_DAILY.month=${m};renderDailyTable();" style="${ST_DAILY.month===m?'background:#111;color:#fff;border-color:#111;':''}">${m}월</button>`
+  // 월 토글 버튼 — 현재월 항상 포함
+  const availMonths=[...new Set([...Object.keys(DAILY_DETAIL).map(Number),DAILY_CUR_MONTH])].filter(m=>m>=1&&m<=12).sort((a,b)=>a-b);
+  document.getElementById('dailyMonthFilter').innerHTML=availMonths.map(m=>
+    `<button class="gf-btn${ST_DAILY.month===m?' on':''}" onclick="ST_DAILY.month=${m};renderDailyKPIs();renderDailyTable();" style="${ST_DAILY.month===m?'background:#111;color:#fff;border-color:#111;':''}">${m}월</button>`
   ).join('');
-  document.getElementById('dailyMonthFilter').innerHTML = monthBtns||`<span style="font-size:11px;color:#aaa;">${mo}월</span>`;
 
   // 채널 필터 버튼
   document.getElementById('dailyChFilter').innerHTML = `
-    <button class="gf-btn${chFilter==='all'?' on':''}" onclick="ST_DAILY.ch='all';renderDailyTable();" style="${chFilter==='all'?'background:#111;color:#fff;border-color:#111;':''}">전체</button>
-    <button class="gf-btn${chFilter==='online'?' on':''}" onclick="ST_DAILY.ch='online';renderDailyTable();" style="${chFilter==='online'?'background:#2563EB;color:#fff;border-color:#2563EB;':''}">온라인</button>
-    <button class="gf-btn${chFilter==='offline'?' on':''}" onclick="ST_DAILY.ch='offline';renderDailyTable();" style="${chFilter==='offline'?'background:#7C3AED;color:#fff;border-color:#7C3AED;':''}">오프라인</button>`;
+    <button class="gf-btn${chFilter==='all'?' on':''}" onclick="ST_DAILY.ch='all';renderDailyKPIs();renderDailyTable();" style="${chFilter==='all'?'background:#111;color:#fff;border-color:#111;':''}">전체</button>
+    <button class="gf-btn${chFilter==='online'?' on':''}" onclick="ST_DAILY.ch='online';renderDailyKPIs();renderDailyTable();" style="${chFilter==='online'?'background:#2563EB;color:#fff;border-color:#2563EB;':''}">온라인</button>
+    <button class="gf-btn${chFilter==='offline'?' on':''}" onclick="ST_DAILY.ch='offline';renderDailyKPIs();renderDailyTable();" style="${chFilter==='offline'?'background:#7C3AED;color:#fff;border-color:#7C3AED;':''}">오프라인</button>`;
 
   document.getElementById('dailyLbl').textContent=`${mo}월 일매출 현황 (+VAT, 천원)`;
 
   const visChs = DAILY_CHS.filter(c=> chFilter==='all'||c.g===(chFilter==='online'?'온라인':'오프라인'));
 
-  // 채널별 월 목표 (+VAT, 일할 계산)
-  function chMonthGoal(k){ return G26[k]?.[mo-1]||0; }
-  function chDailyNeed(k, earnedSoFar){
-    const goal = chMonthGoal(k);
-    const remain = goal - earnedSoFar;
-    return (remDays>0&&remain>0) ? Math.round(remain/remDays) : 0;
+  // 채널별 월 목표 (천원 단위)
+  function chMonthGoal(k){ return Math.round((G26[k]?.[mo-1]||0)/1000); }
+  function chDailyNeed(k, cumulK){
+    const remain=chMonthGoal(k)-cumulK;
+    return (remDays>0&&remain>0)?Math.round(remain/remDays):0;
   }
 
   // 헤더
@@ -1199,19 +1256,42 @@ function renderDailyTable(){
     <td class="sticky-l" style="color:#92400E;">잔여 일평균<br><span style="font-size:9px;font-weight:400;">(${remDays}일 남음)</span></td>`;
   let needTotal=0;
   visChs.forEach(c=>{
-    const goal=Math.round(chMonthGoal(c.k)/1000);
-    const need=Math.round(chDailyNeed(c.k,cumul[c.k]));
+    const goal=chMonthGoal(c.k);
+    const need=chDailyNeed(c.k,cumul[c.k]);
     needTotal+=need;
     const rate=goal>0?cumul[c.k]/goal:null;
     tb+=`<td style="text-align:right;color:#92400E;">
-      ${need>0?need.toLocaleString():'✅'}
-      ${rate!==null?`<div style="font-size:9px;color:#aaa;">목 ${goal.toLocaleString()} (${fp(rate)})</div>`:''}
+      <strong>${need>0?need.toLocaleString()+'천':'✅'}</strong>
+      ${rate!==null?`<div style="font-size:9px;color:#888;">목 ${goal.toLocaleString()}천 (${fp(rate)})</div>`:''}
     </td>`;
   });
-  tb+=`<td style="text-align:right;color:#92400E;font-weight:700;">${needTotal>0?needTotal.toLocaleString():'✅'}</td></tr>`;
+  tb+=`<td style="text-align:right;color:#92400E;font-weight:700;">${needTotal>0?needTotal.toLocaleString()+'천':'✅'}</td></tr>`;
 
   tb+='</tbody>';
-  document.getElementById('dailyTblWrap').innerHTML=`<table>${th}${tb}</table>`;
+  document.getElementById('dailyTblWrap').innerHTML=`
+    <div style="padding:12px 16px 4px;"><canvas id="dailyChart" height="90"></canvas></div>
+    <table>${th}${tb}</table>`;
+  requestAnimationFrame(()=>{
+    const ctx=document.getElementById('dailyChart');
+    if(!ctx) return;
+    if(window._dailyChartInst) window._dailyChartInst.destroy();
+    const chartData=[];const chartLabels=[];
+    for(let d=1;d<=todayDay;d++){
+      let t=0;
+      visChs.forEach(c=>{const v=moData[c.k]?.[d-1];if(v&&v>0)t+=Math.round(v/1000);});
+      chartLabels.push(`${d}일`);chartData.push(t);
+    }
+    window._dailyChartInst=new Chart(ctx,{
+      type:'bar',
+      data:{labels:chartLabels,datasets:[{
+        label:`${mo}월 일매출(천원)`,data:chartData,
+        backgroundColor:'#DBEAFE',borderColor:'#2563EB',borderWidth:1,borderRadius:3
+      }]},
+      options:{responsive:true,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>`${c.parsed.y.toLocaleString()}천원`}}},
+        scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:9},callback:v=>`${(v/1000).toFixed(0)}M`}}}}
+    });
+  });
 }
 function renderFn(){
   const vatNote=ST.vat?'<strong>현재 +VAT 기준</strong> 표시':'<strong>현재 -VAT 기준</strong> 표시';
@@ -1278,6 +1358,7 @@ function render(){
   });
 
   if(isDaily){
+    renderDailyKPIs();
     renderDailyTable();
   } else if(ST.view==='ch'){
     renderChTable();
