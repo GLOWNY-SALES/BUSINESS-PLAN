@@ -60,7 +60,7 @@ body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif
 /* ── Tables ── */
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 table{width:100%;border-collapse:collapse;font-size:11px;}
-thead th{background:#F5F4F0;color:#888;font-weight:700;padding:7px 10px;text-align:right;border-bottom:1.5px solid #E2E0DB;font-size:10px;white-space:nowrap;position:sticky;top:0;}
+thead th{background:#F5F4F0;color:#888;font-weight:700;padding:7px 10px;text-align:right;border-bottom:1.5px solid #E2E0DB;font-size:10px;white-space:nowrap;position:sticky;top:0;z-index:2;}
 thead th:first-child{text-align:left;}
 thead th.sticky-l{position:sticky;left:0;z-index:3;background:#F5F4F0;}
 tbody td{padding:6px 10px;text-align:right;border-bottom:1px solid #F0EEE9;vertical-align:top;}
@@ -169,12 +169,6 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
 </header>
 
 <nav class="nav">
-  <div class="tab-g" id="yearTabs">
-    <div class="tab on" data-y="2026">2026년</div>
-    <div class="tab" data-y="2025">2025년</div>
-    <div class="tab" data-y="cmp">YoY 비교</div>
-  </div>
-  <div class="nav-sep"></div>
   <div class="tab-g" id="viewTabs">
     <div class="vtab on" data-v="ch">채널별 매출</div>
     <div class="vtab" data-v="pl">매장 손익</div>
@@ -190,6 +184,16 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
       <div class="legend" id="legend"></div>
     </div>
     <div class="chart-wrap"><canvas id="chart"></canvas></div>
+  </div>
+  <div class="card" id="yoyChartCard" style="display:none;">
+    <div class="card-hd">
+      <span class="card-ttl">YoY 비교 채널별 매출 현황</span>
+      <div style="display:flex;align-items:center;gap:12px;font-size:11px;">
+        <div style="display:flex;align-items:center;gap:4px;"><div class="lline" style="background:#9CA3AF;"></div><span>2025년</span></div>
+        <div style="display:flex;align-items:center;gap:4px;"><div class="lline" style="background:#2563EB;"></div><span>2026년</span></div>
+      </div>
+    </div>
+    <div class="chart-wrap"><canvas id="yoyChart"></canvas></div>
   </div>
   <div class="card">
     <div class="card-hd">
@@ -227,11 +231,23 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
       <div class="card-hd" style="flex-wrap:wrap;gap:10px;">
         <span class="card-ttl" id="dailyLbl">일매출 현황</span>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select onchange="ST_DAILY.yr=this.value;ST_DAILY.month=ST_DAILY.yr===String(DAILY_CUR_YEAR)?DAILY_CUR_MONTH:12;renderDailyKPIs();renderDailyTable();"
+            style="padding:4px 10px;border-radius:6px;border:1.5px solid #E2E0DB;font-size:12px;font-family:inherit;background:#fff;cursor:pointer;" id="dailyYrSel">
+            <option value="2025">2025년</option>
+            <option value="2026" selected>2026년</option>
+          </select>
           <div class="grp-filter" id="dailyMonthFilter"></div>
           <div class="grp-filter" id="dailyChFilter"></div>
+          <button id="dailyChartToggle" onclick="
+            const w=document.getElementById('dailyChartWrap');
+            const hidden=w.style.display==='none';
+            w.style.display=hidden?'block':'none';
+            this.textContent=hidden?'📊 차트 숨기기':'📊 차트 보기';
+          " style="padding:4px 10px;border-radius:6px;border:1.5px solid #E2E0DB;font-size:12px;background:#fff;cursor:pointer;">📊 차트 숨기기</button>
         </div>
       </div>
-      <div class="tbl-wrap" id="dailyTblWrap"></div>
+      <div id="dailyChartWrap" style="padding:12px 16px 4px;"><canvas id="dailyChart" height="90"></canvas></div>
+      <div class="tbl-wrap" id="dailyTblWrap" style="max-height:600px;overflow-y:auto;"></div>
     </div>
   </div>
 </main>
@@ -244,9 +260,10 @@ const MO=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월'
 const VAT_R=1.1;
 
 // ── Daily Detail (일별 매출 데이터)
-let DAILY_DETAIL = {};
+let DAILY_DETAIL = { "2025":{}, "2026":{} };
 let DAILY_CUR_MONTH = new Date().getMonth() + 1;
-let ST_DAILY = { month: DAILY_CUR_MONTH, ch: 'all' };
+let DAILY_CUR_YEAR = new Date().getFullYear();
+let ST_DAILY = { yr: String(new Date().getFullYear()), month: new Date().getMonth()+1, ch: 'all' };
 
 // 날짜 기반 자동 분류
 const _today=new Date();
@@ -1110,15 +1127,17 @@ function renderAssump(){
 //  DAILY KPIs
 // ══════════════════════════════════════════════
 function renderDailyKPIs(){
+  const yr = ST_DAILY.yr;
   const mo = ST_DAILY.month;
   const chFilter = ST_DAILY.ch;
   const today = new Date();
-  const todayDay = (today.getMonth()+1===mo) ? today.getDate()-1 : DIM[mo-1];
-  const moData = DAILY_DETAIL[String(mo)] || DAILY_DETAIL[mo] || {};
+  const isCurYrMo = yr===String(DAILY_CUR_YEAR)&&mo===DAILY_CUR_MONTH;
+  const todayDay = isCurYrMo ? today.getDate()-1 : DIM[mo-1];
+  const moData = (DAILY_DETAIL[yr]||{})[String(mo)] || (DAILY_DETAIL[yr]||{})[mo] || {};
 
   const visChs = DAILY_CHS.filter(c=> chFilter==='all'||c.g===(chFilter==='online'?'온라인':'오프라인'));
 
-  // MTD 실적 합산 (원)
+  // MTD 실적 합산
   let mtdAct=0;
   visChs.forEach(c=>{
     for(let d=0;d<todayDay;d++){
@@ -1127,42 +1146,60 @@ function renderDailyKPIs(){
     }
   });
 
-  // 월 목표 합산 (원, +VAT)
-  const moGoal=visChs.reduce((s,c)=>s+(G26[c.k]?.[mo-1]||0),0);
+  // 월 목표 (2026만)
+  const moGoal=yr==='2026'?visChs.reduce((s,c)=>s+(G26[c.k]?.[mo-1]||0),0):0;
 
-  // 전년 동월 MTD (A25 기준 — 월 합산으로 근사)
-  const pyMo=visChs.reduce((s,c)=>s+(A25[c.k]?.[mo-1]||0),0);
-  const yoy=pyMo>0?(mtdAct-pyMo)/pyMo:null;
+  // 전년 동월 (YoY)
+  const prevYr=String(parseInt(yr)-1);
+  const prevMoData=(DAILY_DETAIL[prevYr]||{})[String(mo)]||(DAILY_DETAIL[prevYr]||{})[mo]||{};
+  let pyAct=0;
+  visChs.forEach(c=>{
+    for(let d=0;d<DIM[mo-1];d++){
+      const v=prevMoData[c.k]?.[d];
+      if(v&&v>0) pyAct+=v;
+    }
+  });
+  // 전년 없으면 A25 기준
+  if(pyAct===0&&yr==='2026') pyAct=visChs.reduce((s,c)=>s+(A25[c.k]?.[mo-1]||0),0);
+
+  const yoy=pyAct>0?(mtdAct-pyAct)/pyAct:null;
   const rate=moGoal>0?mtdAct/moGoal:null;
+  const isClosedMo=!isCurYrMo;
   const remDays=DIM[mo-1]-todayDay;
   const dailyNeed=remDays>0&&moGoal>mtdAct?Math.round((moGoal-mtdAct)/remDays):0;
-
-  const vatLbl='(+VAT)';
   const chLbl=chFilter==='all'?'전채널':chFilter==='online'?'온라인':'오프라인';
 
   document.getElementById('dailyKpis').innerHTML=`
     <div class="kpi">
-      <div class="kpi-lbl">${mo}월 목표 ${vatLbl}</div>
-      <div class="kpi-val">${fm(moGoal,'ch')}</div>
+      <div class="kpi-lbl">${mo}월 목표 (+VAT)</div>
+      <div class="kpi-val">${moGoal>0?fm(moGoal,'ch'):'—'}</div>
       <div class="kpi-sub">${chLbl} 합산</div>
     </div>
     <div class="kpi">
-      <div class="kpi-lbl">MTD 실적 ${vatLbl} <span style="font-size:9px;color:#aaa;">(~${mo}/${todayDay})</span></div>
+      <div class="kpi-lbl">MTD 실적 (+VAT) <span style="font-size:9px;color:#aaa;">(~${mo}/${todayDay})</span></div>
       <div class="kpi-val" style="color:#2563EB;">${fm(mtdAct,'ch')}</div>
       <div class="kpi-sub">목표 대비 달성률</div>
       <div class="kpi-dy ${rate&&rate>=1?'up':'dn'}">${rate?fp(rate):'—'}</div>
     </div>
     <div class="kpi">
-      <div class="kpi-lbl">잔여 일평균 필요 매출</div>
-      <div class="kpi-val" style="color:#D97706;">${dailyNeed>0?fm(dailyNeed,'ch'):'✅ 달성'}</div>
-      <div class="kpi-sub">${remDays}일 남음</div>
+      <div class="kpi-lbl">${isClosedMo ? '월 목표 달성 현황' : '잔여 일평균 필요 매출'}</div>
+      <div class="kpi-val" style="color:${isClosedMo?(rate&&rate>=1?'#059669':'#DC2626'):'#D97706'};">
+        ${isClosedMo
+          ? (rate&&rate>=1 ? '✅ 달성' : '❌ 미달성')
+          : (dailyNeed>0?fm(dailyNeed,'ch'):'✅ 달성')}
+      </div>
+      <div class="kpi-sub">${isClosedMo
+        ? (rate!==null ? `목표 대비 ${fp(rate)} (${rate>=1?'+':''}${fp(rate-1)})` : '—')
+        : `${remDays}일 남음`}</div>
+      ${isClosedMo&&rate!==null ? `<div class="kpi-dy ${rate>=1?'up':'dn'}">${rate>=1?'+':''}${fp(rate-1)}</div>` : ''}
     </div>
     <div class="kpi">
-      <div class="kpi-lbl">YoY 성장률 <span style="font-size:9px;color:#aaa;">(월 합산 기준)</span></div>
+      <div class="kpi-lbl">YoY 성장률 <span style="font-size:9px;color:#aaa;">(전년 동월)</span></div>
       <div class="kpi-val ${yoy&&yoy>=0?'pos':'neg'}">${yoy!==null?(yoy>=0?'+':'')+fp(yoy):'—'}</div>
       <div class="kpi-sub">전년 동월 대비</div>
     </div>`;
 }
+
 
 // ══════════════════════════════════════════════
 //  DAILY TABLE
@@ -1180,19 +1217,27 @@ const DAILY_CHS = [
 const DIM=[31,28,31,30,31,30,31,31,30,31,30,31];
 
 function renderDailyTable(){
+  const yr = ST_DAILY.yr;
   const mo = ST_DAILY.month;
   const chFilter = ST_DAILY.ch;
   const today = new Date();
-  const todayDay = (today.getMonth()+1===mo) ? today.getDate()-1 : DIM[mo-1];
+  const isCurYrMo = yr===String(DAILY_CUR_YEAR)&&mo===DAILY_CUR_MONTH;
+  const todayDay = isCurYrMo ? today.getDate()-1 : DIM[mo-1];
   const totalDays = DIM[mo-1];
   const remDays = totalDays - todayDay;
-  const moData = DAILY_DETAIL[String(mo)] || DAILY_DETAIL[mo] || {};
+  const moData = (DAILY_DETAIL[yr]||{})[String(mo)] || (DAILY_DETAIL[yr]||{})[mo] || {};
 
-  // 월 토글 버튼 — 현재월 항상 포함
-  const availMonths=[...new Set([...Object.keys(DAILY_DETAIL).map(Number),DAILY_CUR_MONTH])].filter(m=>m>=1&&m<=12).sort((a,b)=>a-b);
-  document.getElementById('dailyMonthFilter').innerHTML=availMonths.map(m=>
-    `<button class="gf-btn${ST_DAILY.month===m?' on':''}" onclick="ST_DAILY.month=${m};renderDailyKPIs();renderDailyTable();" style="${ST_DAILY.month===m?'background:#111;color:#fff;border-color:#111;':''}">${m}월</button>`
-  ).join('');
+  // 연도 셀렉터 sync
+  const yrSel=document.getElementById('dailyYrSel');
+  if(yrSel) yrSel.value=yr;
+
+  // 월 드롭다운 — 2026은 12월까지, 2025는 12월까지
+  const maxMo = 12;
+  document.getElementById('dailyMonthFilter').innerHTML=`
+    <select onchange="ST_DAILY.month=parseInt(this.value);renderDailyKPIs();renderDailyTable();"
+      style="padding:4px 10px;border-radius:6px;border:1.5px solid #E2E0DB;font-size:12px;font-family:inherit;background:#fff;cursor:pointer;">
+      ${Array.from({length:maxMo},(_,i)=>i+1).map(m=>`<option value="${m}"${mo===m?' selected':''}>${m}월</option>`).join('')}
+    </select>`;
 
   // 채널 필터 버튼
   document.getElementById('dailyChFilter').innerHTML = `
@@ -1211,66 +1256,131 @@ function renderDailyTable(){
     return (remDays>0&&remain>0)?Math.round(remain/remDays):0;
   }
 
-  // 헤더
-  let th=`<thead><tr style="font-size:11px;">
-    <th class="sticky-l" style="min-width:50px;">일자</th>`;
+  const DOW=['일','월','화','수','목','금','토'];
+
+  // 미진행 월 처리 — 데이터 없으면 목표 안내만 표시
+  const isFutureMo = yr===String(DAILY_CUR_YEAR) && mo > DAILY_CUR_MONTH;
+  const isClosedMo = !isCurYrMo && !isFutureMo;
+
+  // 미진행 월이면 목표 안내만 표시하고 종료
+  if(isFutureMo){
+    const totalGoal=visChs.reduce((s,c)=>s+chMonthGoal(c.k),0);
+    let futureTh=`<thead><tr style="font-size:11px;"><th class="sticky-l" style="min-width:60px;">채널</th><th>월 목표 (+VAT, 천원)</th></tr></thead>`;
+    let futureTb=`<tbody>`;
+    visChs.forEach(c=>{
+      const g=chMonthGoal(c.k);
+      futureTb+=`<tr style="font-size:11px;"><td class="sticky-l">${c.n}</td><td style="text-align:right;color:#0369A1;">${g>0?g.toLocaleString()+'천':'—'}</td></tr>`;
+    });
+    futureTb+=`<tr style="font-weight:700;background:#F0F9FF;"><td class="sticky-l" style="color:#0369A1;">합계</td><td style="text-align:right;color:#0369A1;">${totalGoal.toLocaleString()}천</td></tr>`;
+    futureTb+=`<tr><td colspan="2" style="text-align:center;padding:24px;color:#aaa;font-size:12px;">📅 ${mo}월은 아직 진행되지 않은 기간이에요.<br>매일 오전 11시 자동 업데이트됩니다.</td></tr>`;
+    futureTb+=`</tbody>`;
+    document.getElementById('dailyTblWrap').innerHTML=`<table>${futureTh}${futureTb}</table>`;
+    if(window._dailyChartInst){window._dailyChartInst.destroy();window._dailyChartInst=null;}
+    document.getElementById('dailyChartWrap').style.display='none';
+    document.getElementById('dailyChartToggle').style.display='none';
+    return;
+  }
+  document.getElementById('dailyChartWrap').style.display='block';
+  document.getElementById('dailyChartToggle').style.display='';
+  const cumul = Object.fromEntries(visChs.map(c=>[c.k,0]));
+  if(!isFutureMo){
+    for(let d=1;d<=todayDay;d++){
+      visChs.forEach(c=>{
+        const v=moData[c.k]?.[d-1]??null;
+        const disp=v!==null?Math.round(v/1000):null;
+        if(disp!==null) cumul[c.k]+=disp;
+      });
+    }
+  }
+  const cumulTotal=visChs.reduce((s,c)=>s+cumul[c.k],0);
+
+  // 헤더 + 누계/잔여 고정 행 (thead에 포함)
+  let th=`<thead>
+  <tr style="font-size:11px;">
+    <th class="sticky-l" style="min-width:60px;">일자</th>`;
   visChs.forEach(c=>{
     th+=`<th style="min-width:75px;color:${c.g==='온라인'?'#2563EB':'#7C3AED'};">${c.n}</th>`;
   });
-  th+=`<th style="min-width:80px;">합계</th></tr></thead>`;
+  th+=`<th style="min-width:80px;">합계</th></tr>`;
 
-  // 일별 행 + 채널별 누계
-  const cumul = Object.fromEntries(visChs.map(c=>[c.k,0]));
+  // 누계 고정 행
+  th+=`<tr style="background:#E8F5E9;font-size:11px;font-weight:700;">
+    <th class="sticky-l" style="background:#E8F5E9;color:#1B5E20;text-align:left;font-weight:700;">~${mo}/${todayDay}<br><span style="font-size:9px;font-weight:400;">누계</span></th>`;
+  visChs.forEach(c=>{
+    th+=`<th style="text-align:right;color:#1B5E20;background:#E8F5E9;">${cumul[c.k].toLocaleString()}</th>`;
+  });
+  th+=`<th style="text-align:right;color:#1B5E20;background:#E8F5E9;border-bottom:2px solid #A5D6A7;">${cumulTotal.toLocaleString()}</th></tr>`;
+
+  // 잔여 일평균 고정 행 (진행중 월만)
+  if(!isClosedMo){
+    th+=`<tr style="background:#FFF8E1;font-size:11px;">
+      <th class="sticky-l" style="background:#FFF8E1;color:#E65100;text-align:left;font-weight:700;">잔여 일평균<br><span style="font-size:9px;font-weight:400;">(${remDays}일)</span></th>`;
+    let needTotal=0;
+    visChs.forEach(c=>{
+      const goal=chMonthGoal(c.k);
+      const need=chDailyNeed(c.k,cumul[c.k]);
+      needTotal+=need;
+      const rate=goal>0?cumul[c.k]/goal:null;
+      th+=`<th style="text-align:right;color:#E65100;background:#FFF8E1;font-weight:400;">${need>0?need.toLocaleString()+'천':'✅'}${rate!==null?`<div style="font-size:9px;color:#888;">목 ${goal.toLocaleString()}천 (${fp(rate)})</div>`:''}</th>`;
+    });
+    th+=`<th style="text-align:right;color:#E65100;background:#FFF8E1;font-weight:700;border-bottom:2px solid #FFE082;">${needTotal>0?needTotal.toLocaleString()+'천':'✅'}</th></tr>`;
+  }
+  th+=`</thead>`;
+
+  // 일별 행 + 주간 소계 (cumul 리셋)
+  Object.keys(cumul).forEach(k=>cumul[k]=0);
+  const weekCumul = Object.fromEntries(visChs.map(c=>[c.k,0]));
+  let weekTotal=0;
   let tb='<tbody>';
 
   for(let d=1;d<=totalDays;d++){
     const idx=d-1;
     const isDone = d<=todayDay;
-    const isToday = d===todayDay+1;
+    const date = new Date(parseInt(yr), mo-1, d);
+    const dow = date.getDay(); // 0=일,6=토
+    const isWeekend = dow===0||dow===6;
+    const dowLabel = DOW[dow];
+    const rowBg = isWeekend ? (dow===0?'#FFF7F7':'#FFF4EC') : '';
+    const dowColor = dow===0?'#DC2626':dow===6?'#D97706':'#666';
     let rowTotal=0;
 
     if(isDone){
-      tb+=`<tr style="font-size:11px;">
-        <td class="sticky-l" style="font-weight:600;">${mo}/${d}</td>`;
+      tb+=`<tr style="font-size:11px;${rowBg?`background:${rowBg};`:''}">
+        <td class="sticky-l" style="font-weight:600;${rowBg?`background:${rowBg};`:''}">
+          ${mo}/${d}<br><span style="font-size:9px;font-weight:400;color:${dowColor};">${dowLabel}</span>
+        </td>`;
       visChs.forEach(c=>{
         const v = moData[c.k]?.[idx]??null;
         const disp = v!==null?Math.round(v/1000):null;
-        if(disp!==null){cumul[c.k]+=disp;rowTotal+=disp;}
-        tb+=`<td style="text-align:right;">${disp!==null?disp.toLocaleString():'—'}</td>`;
+        if(disp!==null){
+          cumul[c.k]+=disp;
+          weekCumul[c.k]+=disp;
+          rowTotal+=disp;
+        }
+        tb+=`<td style="text-align:right;${rowBg?`background:${rowBg};`:''}">${disp!==null?disp.toLocaleString():'—'}</td>`;
       });
-      tb+=`<td style="text-align:right;font-weight:700;">${rowTotal>0?rowTotal.toLocaleString():'—'}</td></tr>`;
+      weekTotal+=rowTotal;
+      tb+=`<td style="text-align:right;font-weight:700;${rowBg?`background:${rowBg};`:''}">${rowTotal>0?rowTotal.toLocaleString():'—'}</td></tr>`;
+
+      // 일요일이거나 월 마지막 날이면 주간 소계
+      const isLastDay = d===totalDays || d===todayDay;
+      if((dow===0||isLastDay) && weekTotal>0){
+        tb+=`<tr style="background:#EFF6FF;font-size:10px;font-weight:700;border-top:1px solid #BFDBFE;">
+          <td class="sticky-l" style="background:#EFF6FF;color:#1D4ED8;">주간 소계</td>`;
+        visChs.forEach(c=>{
+          tb+=`<td style="text-align:right;color:#1D4ED8;">${weekCumul[c.k]>0?weekCumul[c.k].toLocaleString():''}</td>`;
+          weekCumul[c.k]=0;
+        });
+        tb+=`<td style="text-align:right;color:#1D4ED8;">${weekTotal.toLocaleString()}</td></tr>`;
+        weekTotal=0;
+      }
     }
   }
 
-  // 누계 행
-  const cumulTotal = visChs.reduce((s,c)=>s+cumul[c.k],0);
-  tb+=`<tr style="background:#F0FDF4;font-size:11px;font-weight:700;">
-    <td class="sticky-l" style="color:#059669;">~${mo}/${todayDay} 누계</td>`;
-  visChs.forEach(c=>{
-    tb+=`<td style="text-align:right;color:#059669;">${cumul[c.k].toLocaleString()}</td>`;
-  });
-  tb+=`<td style="text-align:right;color:#059669;">${cumulTotal.toLocaleString()}</td></tr>`;
-
-  // 잔여 필요 일평균 행
-  tb+=`<tr style="background:#FEF3C7;font-size:11px;">
-    <td class="sticky-l" style="color:#92400E;">잔여 일평균<br><span style="font-size:9px;font-weight:400;">(${remDays}일 남음)</span></td>`;
-  let needTotal=0;
-  visChs.forEach(c=>{
-    const goal=chMonthGoal(c.k);
-    const need=chDailyNeed(c.k,cumul[c.k]);
-    needTotal+=need;
-    const rate=goal>0?cumul[c.k]/goal:null;
-    tb+=`<td style="text-align:right;color:#92400E;">
-      <strong>${need>0?need.toLocaleString()+'천':'✅'}</strong>
-      ${rate!==null?`<div style="font-size:9px;color:#888;">목 ${goal.toLocaleString()}천 (${fp(rate)})</div>`:''}
-    </td>`;
-  });
-  tb+=`<td style="text-align:right;color:#92400E;font-weight:700;">${needTotal>0?needTotal.toLocaleString()+'천':'✅'}</td></tr>`;
+  // 누계/잔여 행은 thead에 고정됨
 
   tb+='</tbody>';
-  document.getElementById('dailyTblWrap').innerHTML=`
-    <div style="padding:12px 16px 4px;"><canvas id="dailyChart" height="90"></canvas></div>
-    <table>${th}${tb}</table>`;
+  document.getElementById('dailyTblWrap').innerHTML=`<table>${th}${tb}</table>`;
   requestAnimationFrame(()=>{
     const ctx=document.getElementById('dailyChart');
     if(!ctx) return;
@@ -1284,8 +1394,19 @@ function renderDailyTable(){
     window._dailyChartInst=new Chart(ctx,{
       type:'bar',
       data:{labels:chartLabels,datasets:[{
-        label:`${mo}월 일매출(천원)`,data:chartData,
-        backgroundColor:'#DBEAFE',borderColor:'#2563EB',borderWidth:1,borderRadius:3
+        label:`${mo}월 일매출(천원)`,
+        data:chartData,
+        backgroundColor:chartLabels.map((_,i)=>{
+          const date=new Date(parseInt(yr),mo-1,i+1);
+          const dow=date.getDay();
+          return dow===0?'#FECACA':dow===6?'#FED7AA':'#DBEAFE';
+        }),
+        borderColor:chartLabels.map((_,i)=>{
+          const date=new Date(parseInt(yr),mo-1,i+1);
+          const dow=date.getDay();
+          return dow===0?'#DC2626':dow===6?'#D97706':'#2563EB';
+        }),
+        borderWidth:1,borderRadius:3
       }]},
       options:{responsive:true,plugins:{legend:{display:false},
         tooltip:{callbacks:{label:c=>`${c.parsed.y.toLocaleString()}천원`}}},
@@ -1309,6 +1430,35 @@ function renderFn(){
 // ══════════════════════════════════════════════
 //  MAIN RENDER
 // ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+//  YOY CHART
+// ══════════════════════════════════════════════
+let yoyChartInst = null;
+function renderYoyChart(){
+  const mk=(y,color,fill)=>({type:'line',
+    data:MO.map((_,i)=>dv(ALL_CH_KEYS.reduce((s,k)=>{const v=chDisp(k,i,y);return s+(v||0);},0),'ch')/1e6),
+    borderColor:color,backgroundColor:fill?color+'18':'transparent',
+    borderWidth:2.5,pointRadius:3,tension:.35,spanGaps:true,fill:fill,label:y+'년',
+  });
+  const ds=[mk('2025','#9CA3AF',false),mk('2026','#2563EB',true)];
+  const ctx=document.getElementById('yoyChart');
+  if(!ctx) return;
+  if(yoyChartInst){yoyChartInst.destroy();yoyChartInst=null;}
+  yoyChartInst=new Chart(ctx,{
+    data:{labels:MO,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{callbacks:{
+        label:c=>`${c.dataset.label}: ${c.parsed.y!==null?(c.parsed.y.toFixed(0)+'백만'):'—'}`
+      }}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10}}},
+        y:{grid:{color:'#F0EFEB'},ticks:{font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'억':v+'M'}},
+      },
+    },
+  });
+}
+
 function render(){
   // VAT button
   const vatTag=document.getElementById('vatTag');
@@ -1328,7 +1478,7 @@ function render(){
   }
 
   // Year & view tabs
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.y===ST.yr));
+  // year tabs removed
   document.querySelectorAll('.vtab').forEach(t=>t.classList.toggle('on',t.dataset.v===ST.view));
 
   // Group filter buttons — 채널 뷰일 때만 표시
@@ -1339,29 +1489,42 @@ function render(){
   }
 
   // Labels
-  const yn={2026:'2026년',2025:'2025년',cmp:'YoY 비교'}[ST.yr]||'';
   const vn=ST.view==='ch'?'채널별 매출':'매장 손익';
   const grpLblMap={all:'',online:' · 온라인',offline:' · 오프라인',ws:' · 도매'};
-  document.getElementById('chartLbl').textContent=`${yn} ${vn}${grpLblMap[ST.grp]||''} 현황${!ST.dt?' (DT 제외)':''}`;
-  document.getElementById('tblLbl').textContent=`${yn} 월별 ${vn}`;
+  document.getElementById('chartLbl').textContent=`2026년 ${vn}${grpLblMap[ST.grp]||''} 현황${!ST.dt?' (DT 제외)':''}`;
+  document.getElementById('tblLbl').textContent=`2026년 월별 ${vn}`;
 
   renderKPIs();
   renderChart();
 
   // 뷰별 섹션 토글
   const isDaily = ST.view==='daily';
+  const isCh = ST.view==='ch';
+
+  // 글로벌 KPI — 일매출 탭에서는 숨김
+  document.getElementById('kpis').style.display = isDaily?'none':'';
+
+  // 메인 차트
   document.getElementById('chartCard').style.display = isDaily?'none':'';
+
+  // YoY 비교 차트 — 채널 뷰에서만 표시
+  document.getElementById('yoyChartCard').style.display = isCh&&!isDaily?'':'none';
+
+  // 일매출 섹션
   document.getElementById('dailySection').style.display = isDaily?'block':'none';
+
+  // 나머지 카드 (테이블 등)
   document.querySelectorAll('.card').forEach(c=>{
-    if(c.id!=='chartCard'&&!c.closest('#dailySection')&&!c.closest('#apPanel'))
-      c.style.display=isDaily?'none':'';
+    if(c.id==='chartCard'||c.id==='yoyChartCard'||c.closest('#dailySection')||c.closest('#apPanel')) return;
+    c.style.display=isDaily?'none':'';
   });
 
   if(isDaily){
     renderDailyKPIs();
     renderDailyTable();
-  } else if(ST.view==='ch'){
+  } else if(isCh){
     renderChTable();
+    renderYoyChart();
   } else {
     renderPLTable();
   }
@@ -1372,7 +1535,7 @@ function render(){
 // ══════════════════════════════════════════════
 //  EVENTS
 // ══════════════════════════════════════════════
-document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{ST.yr=t.dataset.y;save();render();}));
+// year tabs removed
 document.querySelectorAll('.vtab').forEach(t=>t.addEventListener('click',()=>{ST.view=t.dataset.v;save();render();}));
 document.querySelectorAll('.gf-btn').forEach(b=>b.addEventListener('click',()=>{ST.grp=b.dataset.g;render();}));
 
@@ -1430,6 +1593,8 @@ function mergeData(json){
       const raw=typeof json.dailyDetail==='string'?JSON.parse(json.dailyDetail):json.dailyDetail;
       if(raw.dailyDetail) DAILY_DETAIL=raw.dailyDetail;
       if(raw.currentMonth) DAILY_CUR_MONTH=raw.currentMonth;
+      if(raw.currentYear) DAILY_CUR_YEAR=raw.currentYear;
+      ST_DAILY.yr=String(DAILY_CUR_YEAR);
       ST_DAILY.month=DAILY_CUR_MONTH;
     }
     // 업데이트 날짜 표시
