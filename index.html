@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>글로니 경영 대시보드 2025–2026</title>
+<title>📊 Glowny Sales Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -563,33 +563,40 @@ function renderKPIs(){
       }
     });
   }
-  // YTD: 해당 연도 1~4월 확정 실적 합산 (매장 손익 뷰는 오프라인 기준)
-  let ytdAct=0, ytdGoal=null;
+  // YTD: 진행중 월(CURRENT_MONTH)까지 누계 합산
+  //  - 채널 뷰: 1~현재월 (5월 진행중 데이터는 chDispEff로 ST.chOv 포함)
+  //  - 매장 뷰: BEP는 일별 자동 업데이트 아니므로 확정 마감월(CLOSED_PL)까지만
+  let ytdAct=0, ytdGoal=null, ytdEndIdx;
   if(vw==='ch'){
-    const ytdSrc=yr==='2025'?A25:A26;
+    ytdEndIdx=yr==='2026'?CURRENT_MONTH:11; // 2026: 진행중월까지, 2025: 12월 전체
     ytdAct=chKeys.reduce((s,k)=>{
-      for(let i=0;i<CLOSED_CH;i++) s+=(ytdSrc[k]?.[i]??0);
+      for(let i=0;i<=ytdEndIdx;i++){
+        if(yr==='2025') s+=(A25[k]?.[i]??0);
+        else s+=(chDispEff(k,i,yr)??0); // 확정+진행중 포함
+      }
       return s;
     },0);
     ytdGoal=yr==='2026'?chKeys.reduce((s,k)=>{
-      for(let i=0;i<CLOSED_CH;i++) s+=(chGoalEff(k,i,'2026')??0);
+      for(let i=0;i<=ytdEndIdx;i++) s+=(chGoalEff(k,i,'2026')??0);
       return s;
     },0):null;
   } else {
-    // 매장 손익: 오프라인 매출 누계
+    ytdEndIdx=yr==='2026'?CLOSED_PL-1:11;
     STORES.forEach(({k})=>{
-      for(let i=0;i<CLOSED_PL;i++){
+      for(let i=0;i<=ytdEndIdx;i++){
         const r=bRev(k,i,yr);
-        if(r) ytdAct+=dv(r,'bep');
+        if(r&&bIsAct(k,i,yr)) ytdAct+=dv(r,'bep');
       }
     });
     ytdGoal=yr==='2026'?STORES.reduce((s,{k})=>{
-      for(let i=0;i<CLOSED_PL;i++) s+=dv(BTGT26[k]?.[i]||0,'bep');
+      for(let i=0;i<=ytdEndIdx;i++) s+=dv(BTGT26[k]?.[i]||0,'bep');
       return s;
     },0):null;
   }
   const ytdRate=ytdGoal&&ytdGoal>0?ytdAct/ytdGoal:null;
-  const ytdLbl=yr==='2025'?'2025년 1~4월 누계':'1~4월 누계';
+  // 라벨: 채널 뷰(2026)는 어제 기준, 매장 뷰는 마감월 기준
+  const ytdDateStr=`~${_yesterday.getMonth()+1}/${_yesterday.getDate()}`; // "~5/14"
+  const ytdLbl=yr==='2025'?'2025년 전체':(vw==='ch'?`${ytdDateStr} 누계`:`1~${ytdEndIdx+1}월 누계`);
   const dR=totPY>0?fdelta(totCur,totPY):null;
   const vatLbl=ST.vat?'(+VAT)':'(-VAT)';
   const dtNote=!ST.dt?'<span style="font-size:9px;background:#FEF3C7;color:#92400E;padding:1px 5px;border-radius:3px;margin-left:4px;">DT 제외</span>':'';
@@ -609,9 +616,9 @@ function renderKPIs(){
       <div class="kpi-dy ${ytdRate!==null?(ytdRate>=1?'up':'dn'):'up'}">${ytdRate!==null?fp(ytdRate):'—'}</div>
     </div>
     <div class="kpi">
-      <div class="kpi-lbl">연간 시뮬 합계</div>
+      <div class="kpi-lbl">연간 예상 합계</div>
       <div class="kpi-val">${fm(totCur)}</div>
-      <div class="kpi-sub">실적+시뮬${!ST.dt?' (DT 제외)':''}</div>
+      <div class="kpi-sub">실적+진행중+시뮬${!ST.dt?' (DT 제외)':''}</div>
       ${dR?`<div class="kpi-dy ${dR.v>=0?'up':'dn'}">YoY ${dR.s}</div>`:''}
     </div>
     <div class="kpi">
