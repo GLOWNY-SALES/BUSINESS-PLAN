@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>GLOWNY SALES DASHBOARD</title>
+<title>GLOWNY SALES DASHBOARD 2026</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -208,6 +208,12 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
 .it-pg-arrow:disabled{opacity:.35;cursor:not-allowed;}
 .it-pg-cur{min-width:60px;text-align:center;font-size:11px;font-weight:700;color:#333;padding:0 6px;}
 
+/* 이번달 예측 배지 */
+.cur-mo-forecast{font-size:11px;padding:5px 11px;border-radius:6px;background:#FEF3C7;color:#92400E;font-weight:600;line-height:1.3;border:1px solid transparent;}
+.cur-mo-forecast.over{background:#D1FAE5;color:#065F46;border-color:#86EFAC;}
+.cur-mo-forecast.under{background:#FEE2E2;color:#991B1B;border-color:#FECACA;}
+.cur-mo-forecast strong{font-weight:700;}
+
 /* 일매출 — 다중 헤더 sticky (채널헤더 + 누계 + 잔여 일평균) */
 #dailyTblWrap thead tr.dly-hdr-ch   th{top:0;     z-index:3;}
 #dailyTblWrap thead tr.dly-hdr-cum  th{top:34px;  z-index:3;}
@@ -264,7 +270,10 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
   <div class="kpis" id="kpis"></div>
   <div class="card" id="chartCard">
     <div class="card-hd">
-      <span class="card-ttl" id="chartLbl">채널별 매출 현황</span>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span class="card-ttl" id="chartLbl">채널별 매출 현황</span>
+        <span id="curMoForecast" class="cur-mo-forecast" style="display:none;"></span>
+      </div>
       <div class="legend" id="legend"></div>
     </div>
     <div class="chart-wrap"><canvas id="chart"></canvas></div>
@@ -836,7 +845,7 @@ function renderChart(){
     const mk=(y,color,fill)=>({type:'line',
       data:MO.map((_,i)=>dv(ALL_CH_KEYS.reduce((s,k)=>{const v=chDisp(k,i,y);return s+(v||0);},0),'ch')/1e6),
       borderColor:color,backgroundColor:fill?color+'18':'transparent',
-      borderWidth:2.5,pointRadius:3,tension:.35,spanGaps:true,fill:fill,label:y+'년',
+      borderWidth:2.5,pointRadius:3,tension:.35,spanGaps:true,fill:fill,label:y+'년',order:0,
     });
     ds=[mk('2025','#9CA3AF',false),mk('2026','#2563EB',true)];
     document.getElementById('legend').innerHTML=
@@ -852,27 +861,26 @@ function renderChart(){
     const visKeys=filteredChKeys();
 
     if(ST.grp!=='all'){
-      // 단일 그룹: 채널별 개별 막대
       const grp=visGroups[0];
       const chColors=['#1D4ED8','#4F46E5','#0891B2','#059669','#D97706','#DC2626'];
       const chDefs=CH_GROUPS.find(g=>g.id===ST.grp)?.chs||[];
       chDefs.forEach(({k,n},ci)=>{
-        ds.push({type:'bar',label:n,stack:'s',
+        ds.push({type:'bar',label:n,stack:'s',order:2,
           data:MO.map((_,i)=>dv(chDispEff(k,i,yr)||0,'ch')/1e6),
           backgroundColor:chColors[ci]+'33',borderColor:chColors[ci],borderWidth:1});
       });
     } else {
       visGroups.forEach(g=>{
-        ds.push({type:'bar',label:g.label,stack:'s',
+        ds.push({type:'bar',label:g.label,stack:'s',order:2,
           data:MO.map((_,i)=>dv(g.keys.reduce((s,k)=>{const v=chDispEff(k,i,yr);return s+(v||0);},0),'ch')/1e6),
           backgroundColor:g.bg,borderColor:g.c,borderWidth:1});
       });
     }
-    // goal line (그룹 필터 반영)
-    ds.push({type:'line',label:`목표${!ST.dt?' (DT제외)':''}`,
+    // goal line — order:0 으로 항상 위에 표시
+    ds.push({type:'line',label:`목표${!ST.dt?' (DT제외)':''}`,order:0,
       data:MO.map((_,i)=>dv(visKeys.reduce((s,k)=>s+(chGoalEff(k,i,yr)||0),0),'ch')/1e6),
-      borderColor:'#DC2626',backgroundColor:'transparent',borderWidth:1.5,
-      borderDash:[4,3],pointRadius:2,tension:.3,spanGaps:true,fill:false});
+      borderColor:'#DC2626',backgroundColor:'transparent',borderWidth:2,
+      borderDash:[4,3],pointRadius:3,pointBackgroundColor:'#DC2626',tension:.3,spanGaps:true,fill:false});
 
     if(ST.grp!=='all'){
       const chDefs=CH_GROUPS.find(g=>g.id===ST.grp)?.chs||[];
@@ -888,7 +896,7 @@ function renderChart(){
   } else {
     // P&L chart
     STORES.forEach(({k,n,c,bg},idx)=>{
-      ds.push({type:'bar',label:n,stack:'s',
+      ds.push({type:'bar',label:n,stack:'s',order:2,
         data:MO.map((_,i)=>{const r=bRev(k,i,yr);return r?dv(r,'bep')/1e6:0;}),
         backgroundColor:bg,borderColor:c,borderWidth:1});
     });
@@ -897,7 +905,7 @@ function renderChart(){
       STORES.forEach(({k})=>{const ov=bOI(k,i,yr);if(ov)o+=ov;});
       return o/1e6;
     });
-    ds.push({type:'line',label:'영업이익',data:oiData,
+    ds.push({type:'line',label:'영업이익',data:oiData,order:0,
       borderColor:'#059669',backgroundColor:'rgba(5,150,105,.08)',
       borderWidth:2,pointRadius:3,tension:.35,spanGaps:true,fill:false});
     document.getElementById('legend').innerHTML=
@@ -905,11 +913,44 @@ function renderChart(){
       `<div style="display:flex;align-items:center;gap:4px;"><div class="lline" style="background:#059669;"></div><span style="color:#059669;font-weight:700;">영업이익</span></div>`;
   }
 
+  // 진행 중 월 박스 하이라이트 plugin
+  const curMonthHighlight = {
+    id: 'curMonthHighlight',
+    beforeDatasetsDraw(chart) {
+      if(yr !== '2026') return;
+      const {ctx, chartArea, scales} = chart;
+      if(!scales.x || !chartArea) return;
+      const xScale = scales.x;
+      const mIdx = CURRENT_MONTH;
+      // 막대 너비 추정: 카테고리 너비
+      const colWidth = (chartArea.right - chartArea.left) / 12;
+      const xCenter = xScale.getPixelForValue(mIdx);
+      const padding = colWidth * 0.06;
+      const xLeft = xCenter - colWidth/2 + padding;
+      const xRight = xCenter + colWidth/2 - padding;
+      ctx.save();
+      ctx.fillStyle = 'rgba(217, 119, 6, 0.10)';
+      ctx.fillRect(xLeft, chartArea.top, xRight - xLeft, chartArea.bottom - chartArea.top);
+      ctx.strokeStyle = '#D97706';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 3]);
+      ctx.strokeRect(xLeft, chartArea.top, xRight - xLeft, chartArea.bottom - chartArea.top);
+      ctx.setLineDash([]);
+      // 상단 "진행중" 라벨
+      ctx.fillStyle = '#D97706';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('● 진행중', xCenter, chartArea.top - 4);
+      ctx.restore();
+    }
+  };
+
   const ctx=document.getElementById('chart').getContext('2d');
   if(chartInst){chartInst.destroy();chartInst=null;}
   chartInst=new Chart(ctx,{
     data:{labels:MO,datasets:ds},
     options:{responsive:true,maintainAspectRatio:false,
+      layout:{padding:{top:16}}, // 진행중 라벨 공간 확보
       interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:false},tooltip:{callbacks:{
         label:c=>`${c.dataset.label}: ${c.parsed.y!==null?(c.parsed.y.toFixed(0)+'백만'):'—'}`
@@ -919,7 +960,63 @@ function renderChart(){
         y:{grid:{color:'#F0EFEB'},ticks:{font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'억':v+'M'}},
       },
     },
+    plugins:[curMonthHighlight],
   });
+
+  // 이번달 예측 배지 갱신
+  renderCurMonthForecast();
+}
+
+// ── 이번달 예측 계산 + 배지 표시
+function renderCurMonthForecast(){
+  const el = document.getElementById('curMoForecast');
+  if(!el) return;
+  const yr = ST.yr;
+  const vw = ST.view;
+  // 2026 채널 뷰에서만 표시
+  if(yr !== '2026' || vw !== 'ch'){
+    el.style.display = 'none';
+    return;
+  }
+  // DAILY_DETAIL 없으면 숨김
+  const moData = DAILY_DETAIL?.['2026']?.[String(CURRENT_MONTH+1)] || DAILY_DETAIL?.['2026']?.[CURRENT_MONTH+1];
+  if(!moData){
+    el.style.display = 'none';
+    return;
+  }
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate()-1);
+  const yesterdayDay = yesterday.getDate();
+  const daysInMo = new Date(2026, CURRENT_MONTH+1, 0).getDate();
+  if(yesterdayDay <= 0){
+    el.style.display = 'none';
+    return;
+  }
+  const chKeys = filteredChKeys();
+  let actMTD = 0;
+  let goalMo = 0;
+  chKeys.forEach(k=>{
+    const arr = moData[k] || [];
+    for(let d=0; d<yesterdayDay; d++) actMTD += (arr[d] || 0);
+    goalMo += (chGoalEff(k, CURRENT_MONTH, '2026') ?? 0);
+  });
+  if(goalMo <= 0){
+    el.style.display = 'none';
+    return;
+  }
+  const dailyAvg = actMTD / yesterdayDay;
+  const expected = dailyAvg * daysInMo;
+  const rate = expected / goalMo;
+
+  let cls = '', status = '';
+  if(rate >= 1.0) { cls = 'over'; status = '✅ 달성 예상'; }
+  else if(rate >= 0.9) { cls = ''; status = '⚠️ 근접'; }
+  else { cls = 'under'; status = '❌ 미달 예상'; }
+
+  el.className = `cur-mo-forecast ${cls}`;
+  el.style.display = 'inline-block';
+  const monName = `${CURRENT_MONTH+1}월`;
+  el.innerHTML = `📍 ${monName} 예측: <strong>${fm(expected,'ch')}</strong> / 목표 <strong>${fm(goalMo,'ch')}</strong> · 달성률 <strong>${(rate*100).toFixed(0)}%</strong> ${status} <span style="font-weight:400;font-size:10px;color:#999;">(${yesterdayDay}/${daysInMo}일 진행, 일평균 ${fm(dailyAvg,'ch')})</span>`;
 }
 
 // ══════════════════════════════════════════════
