@@ -1600,24 +1600,27 @@ function renderDailyTable(){
     const dowColor = dow===0?'#DC2626':dow===6?'#D97706':'#666';
     let rowTotal=0;
 
-    if(isDone){
-      tb+=`<tr style="font-size:11px;${rowBg?`background:${rowBg};`:''}">
-        <td class="sticky-l" style="font-weight:600;${rowBg?`background:${rowBg};`:''}">
-          ${mo}/${d}<br><span style="font-size:9px;font-weight:400;color:${dowColor};">${dowLabel}</span>
-        </td>`;
-      visChs.forEach(c=>{
-        const v = moData[c.k]?.[idx]??null;
-        const disp = v!==null?Math.round(v/1000):null;
-        if(disp!==null){
-          cumul[c.k]+=disp;
-          weekCumul[c.k]+=disp;
-          rowTotal+=disp;
-        }
-        tb+=`<td style="text-align:right;${rowBg?`background:${rowBg};`:''}">${disp!==null?disp.toLocaleString():'—'}</td>`;
-      });
-      weekTotal+=rowTotal;
-      tb+=`<td style="text-align:right;font-weight:700;${rowBg?`background:${rowBg};`:''}">${rowTotal>0?rowTotal.toLocaleString():'—'}</td></tr>`;
+    // 일별 행은 항상 표시 (미진행 날짜는 — 로, 흐리게)
+    const rowOpacity = isDone ? '' : 'opacity:0.45;';
+    tb+=`<tr style="font-size:11px;${rowBg?`background:${rowBg};`:''}${rowOpacity}">
+      <td class="sticky-l" style="font-weight:600;${rowBg?`background:${rowBg};`:''}">
+        ${mo}/${d}<br><span style="font-size:9px;font-weight:400;color:${dowColor};">${dowLabel}</span>
+      </td>`;
+    visChs.forEach(c=>{
+      const v = isDone ? (moData[c.k]?.[idx]??null) : null;
+      const disp = v!==null?Math.round(v/1000):null;
+      if(disp!==null){
+        cumul[c.k]+=disp;
+        weekCumul[c.k]+=disp;
+        rowTotal+=disp;
+      }
+      tb+=`<td style="text-align:right;${rowBg?`background:${rowBg};`:''}">${disp!==null?disp.toLocaleString():'—'}</td>`;
+    });
+    weekTotal+=rowTotal;
+    tb+=`<td style="text-align:right;font-weight:700;${rowBg?`background:${rowBg};`:''}">${rowTotal>0?rowTotal.toLocaleString():'—'}</td></tr>`;
 
+    // 주간 소계는 진행 완료된 날에만 추가
+    if(isDone){
       // 일요일이거나 월 마지막 날이면 주간 소계
       const isLastDay = d===totalDays || d===todayDay;
       if((dow===0||isLastDay) && weekTotal>0){
