@@ -3,119 +3,19 @@ on:
   repository_dispatch:
     types: [update-data]
   workflow_dispatch:
-  schedule:
-    - cron: '10 2 * * 1-5'  # KST 11:10 평일
-
 permissions:
   contents: write
-
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Check ONEDRIVE_URL secret
-        env:
-          ONEDRIVE_URL: ${{ secrets.ONEDRIVE_URL }}
-        run: |
-          if [ -z "$ONEDRIVE_URL" ]; then
-            echo "❌ ONEDRIVE_URL secret이 설정되지 않았습니다"
-            exit 1
-          fi
-          echo "✅ ONEDRIVE_URL secret 존재"
-          DOMAIN=$(echo "$ONEDRIVE_URL" | grep -oP 'https?://[^/]+' || echo "도메인 추출 실패")
-          echo "🔗 도메인: $DOMAIN"
-          echo "🔗 URL 길이: ${#ONEDRIVE_URL} 문자"
-          PREFIX="${ONEDRIVE_URL:0:50}"
-          SUFFIX="${ONEDRIVE_URL: -30}"
-          echo "🔗 URL 패턴: ${PREFIX}...${SUFFIX}"
-
-      - name: Test OneDrive URL (HEAD request)
-        env:
-          ONEDRIVE_URL: ${{ secrets.ONEDRIVE_URL }}
-        run: |
-          echo "📡 OneDrive URL HEAD 요청 테스트..."
-          set +e
-          HTTP_CODE=$(curl -L -o /dev/null -s -w "%{http_code}" -I "$ONEDRIVE_URL")
-          echo "HTTP 상태 코드: $HTTP_CODE"
-
-          echo ""
-          echo "📡 응답 헤더 (verbose 처음 40줄):"
-          curl -L -I -v "$ONEDRIVE_URL" 2>&1 | head -40 | sed 's/Cookie:.*/Cookie: [HIDDEN]/'
-          set -e
-
-      - name: Download data.json from OneDrive
-        env:
-          ONEDRIVE_URL: ${{ secrets.ONEDRIVE_URL }}
-        run: |
-          echo "📥 OneDrive에서 data.json 다운로드 중..."
-          set +e
-          curl -L -o data.json.new -w "HTTP %{http_code} | %{size_download} bytes | %{content_type}\n" "$ONEDRIVE_URL"
-          CURL_EXIT=$?
-          set -e
-
-          if [ $CURL_EXIT -ne 0 ]; then
-            echo "❌ curl 종료 코드: $CURL_EXIT"
-            echo "다운로드된 내용 처음 500자:"
-            head -c 500 data.json.new 2>/dev/null || echo "(파일 없음)"
-            exit 1
-          fi
-
-          SIZE=$(stat -c%s data.json.new 2>/dev/null || echo "0")
-          echo "📦 다운로드된 파일 크기: ${SIZE} bytes"
-
-          if [ "$SIZE" -lt 100 ]; then
-            echo "❌ 파일이 너무 작습니다. 내용:"
-            cat data.json.new
-            exit 1
-          fi
-
-          echo ""
-          echo "📄 파일 처음 200자:"
-          head -c 200 data.json.new
-          echo ""
-
-          if ! python3 -c "import json; json.load(open('data.json.new'))" 2>/dev/null; then
-            echo "❌ 다운로드된 파일이 유효한 JSON이 아닙니다"
-            echo "처음 1000자:"
-            head -c 1000 data.json.new
-            exit 1
-          fi
-
-          mv data.json.new data.json
-          echo "✅ data.json 교체 완료"
-
-      - name: Show data.json summary
-        run: |
-          python3 -c "
-          import json
-          with open('data.json') as f:
-              d = json.load(f)
-          print(f\"updated: {d.get('updated', 'N/A')}\")
-          for key in ['kpi', 'bep', 'daily', 'dailyDetail', 'items']:
-              val = d.get(key, '')
-              size = len(val) if isinstance(val, str) else len(json.dumps(val))
-              print(f\"{key}: {size:,} bytes\")
-          items_raw = d.get('items', '')
-          if items_raw:
-              try:
-                  items = json.loads(items_raw) if isinstance(items_raw, str) else items_raw
-                  print(f\"items.weeks: {len(items.get('weeks', []))}주\")
-                  print(f\"items.items: {len(items.get('items', []))}개 SKU\")
-              except:
-                  pass
-          "
-
+      - name: Write data.json
+        run: echo '${{ github.event.client_payload.data }}' | base64 -d > data.json
       - name: Commit and push
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add data.json
-          if git diff --staged --quiet; then
-            echo "ℹ️  변경 사항 없음"
-          else
-            git commit -m "Auto update $(date +'%Y-%m-%d %H:%M')"
-            git push
-            echo "✅ 변경 사항 푸시 완료"
-          fi
+          git diff --staged --quiet || git commit -m "Auto update $(date +'%Y-%m-%d')"
+          git push
