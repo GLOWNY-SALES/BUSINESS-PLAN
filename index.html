@@ -384,8 +384,8 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
           </select>
           <span style="font-size:10px;color:#888;font-weight:700;">정렬:</span>
           <select class="it-sort-sel" id="itSortSel">
-            <option value="w1">최근 1주 수량</option>
-            <option value="qs" selected>누계 수량</option>
+            <option value="w1" selected>최근 1주 수량</option>
+            <option value="qs">누계 수량</option>
             <option value="stk">재고 많음순</option>
             <option value="opwk">운영가능주차 짧음</option>
             <option value="tag">TAG가 높음</option>
@@ -1786,7 +1786,7 @@ let ST_ITEM = {
   dim: 'col',          // 분류 차원: col/yr/sn/cat
   wkIdx: -1,           // 선택 주차 인덱스 (-1 = 최신)
   agg: 'sc',           // 집계: sc(스타일+컬러) / s(스타일 통합)
-  sort: 'qs',          // 정렬: w1/qs/stk/opwk/tag
+  sort: 'w1',          // 정렬: w1/qs/stk/opwk/tag
   fltCol: new Set(),
   fltYr: new Set(),
   fltCat: new Set(),
@@ -2269,15 +2269,21 @@ function renderItemTable(){
   setDis('itPgLast',  pgNum >= totalPages);
 }
 
-// ── 주차 셀렉트 채우기
+// ── 주차 셀렉트 채우기 (내림차순 — 최신 주차가 위로)
 function fillItWkSelect(){
   const sel = document.getElementById('itWkSel');
   if(!sel || !ITEMS_DATA.weeks.length) return;
   const cur = ST_ITEM.wkIdx<0 ? ITEMS_DATA.weeks.length-1 : ST_ITEM.wkIdx;
-  sel.innerHTML = ITEMS_DATA.weeks.map((w,i)=>{
+  // 인덱스를 보존한 채로 역순 순회
+  const opts = [];
+  for(let i = ITEMS_DATA.weeks.length-1; i >= 0; i--){
+    const w = ITEMS_DATA.weeks[i];
     const range = wkDateRange(w);
-    return `<option value="${i}"${i===cur?' selected':''}>${w} 주차 (${range})</option>`;
-  }).join('');
+    const isLatest = i === ITEMS_DATA.weeks.length-1;
+    const latestTag = isLatest ? ' 🆕' : '';
+    opts.push(`<option value="${i}"${i===cur?' selected':''}>${w} 주차 (${range})${latestTag}</option>`);
+  }
+  sel.innerHTML = opts.join('');
 }
 
 // ── 푸터 노트
