@@ -1,9 +1,10 @@
 name: Sync data.json from OneDrive
-
 on:
   repository_dispatch:
     types: [update-data]
   workflow_dispatch:
+  schedule:
+    - cron: '10 2 * * 1-5'  # KST 11:10 평일
 
 permissions:
   contents: write
@@ -14,13 +15,63 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Write data.json
-        run: echo '${{ github.event.client_payload.data }}' | base64 -d > data.json
+      - name: Download data.json from OneDrive
+        env:
+          ONEDRIVE_URL: ${{ secrets.ONEDRIVE_URL }}
+        run: |
+          if [ -z "$ONEDRIVE_URL" ]; then
+            echo "❌ ONEDRIVE_URL secret이 설정되지 않았습니다"
+            exit 1
+          fi
+          echo "📥 OneDrive에서 data.json 다운로드 중..."
+          curl -L -f -o data.json.new "$ONEDRIVE_URL"
+
+          # 유효성 검증 - JSON 파싱 가능한지
+          if ! python3 -c "import json; json.load(open('data.json.new'))" 2>/dev/null; then
+            echo "❌ 다운로드된 파일이 유효한 JSON이 아닙니다"
+            head -c 500 data.json.new
+            exit 1
+          fi
+
+          # 파일 크기 확인
+          SIZE=$(stat -c%s data.json.new)
+          echo "✅ 다운로드 완료: ${SIZE} bytes"
+
+          # 기존 파일 교체
+          mv data.json.new data.json
+
+      - name: Show update summary
+        run: |
+          echo "📊 data.json 요약:"
+          python3 -c "
+          import json
+          with open('data.json') as f:
+              d = json.load(f)
+          print(f\"  - updated: {d.get('updated', 'N/A')}\")
+          for key in ['kpi', 'bep', 'daily', 'dailyDetail', 'items']:
+              val = d.get(key, '')
+              size = len(val) if isinstance(val, str) else len(json.dumps(val))
+              print(f\"  - {key}: {size:,} bytes\")
+          # items 별도 분석
+          items_raw = d.get('items', '')
+          if items_raw:
+              try:
+                  items = json.loads(items_raw) if isinstance(items_raw, str) else items_raw
+                  print(f\"  - items.weeks: {len(items.get('weeks', []))}주\")
+                  print(f\"  - items.items: {len(items.get('items', []))}개 SKU\")
+              except:
+                  pass
+          "
 
       - name: Commit and push
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add data.json
-          git diff --staged --quiet || git commit -m "Auto update $(date +'%Y-%m-%d')"
-          git push
+          if git diff --staged --quiet; then
+            echo "ℹ️  변경 사항 없음 - 커밋 생략"
+          else
+            git commit -m "Auto update $(date +'%Y-%m-%d %H:%M')"
+            git push
+            echo "✅ 변경 사항 푸시 완료"
+          fi
