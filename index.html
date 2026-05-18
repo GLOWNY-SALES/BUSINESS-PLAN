@@ -1559,27 +1559,27 @@ function renderDailyTable(){
   });
   th+=`<th style="min-width:80px;">합계</th></tr>`;
 
-  // 누계 고정 행
+  // 누계 고정 행 — 헤더 아래에 stick (top:30px)
   th+=`<tr style="background:#E8F5E9;font-size:11px;font-weight:700;">
-    <th class="sticky-l" style="background:#E8F5E9;color:#1B5E20;text-align:left;font-weight:700;">~${mo}/${todayDay}<br><span style="font-size:9px;font-weight:400;">누계</span></th>`;
+    <th class="sticky-l" style="top:30px;background:#E8F5E9;color:#1B5E20;text-align:left;font-weight:700;">~${mo}/${todayDay}<br><span style="font-size:9px;font-weight:400;">누계</span></th>`;
   visChs.forEach(c=>{
-    th+=`<th style="text-align:right;color:#1B5E20;background:#E8F5E9;">${cumul[c.k].toLocaleString()}</th>`;
+    th+=`<th style="top:30px;text-align:right;color:#1B5E20;background:#E8F5E9;">${cumul[c.k].toLocaleString()}</th>`;
   });
-  th+=`<th style="text-align:right;color:#1B5E20;background:#E8F5E9;border-bottom:2px solid #A5D6A7;">${cumulTotal.toLocaleString()}</th></tr>`;
+  th+=`<th style="top:30px;text-align:right;color:#1B5E20;background:#E8F5E9;border-bottom:2px solid #A5D6A7;">${cumulTotal.toLocaleString()}</th></tr>`;
 
-  // 잔여 일평균 고정 행 (진행중 월만)
+  // 잔여 일평균 고정 행 (진행중 월만) — 누계 아래에 stick (top:72px)
   if(!isClosedMo){
     th+=`<tr style="background:#FFF8E1;font-size:11px;">
-      <th class="sticky-l" style="background:#FFF8E1;color:#E65100;text-align:left;font-weight:700;">잔여 일평균<br><span style="font-size:9px;font-weight:400;">(${remDays}일)</span></th>`;
+      <th class="sticky-l" style="top:72px;background:#FFF8E1;color:#E65100;text-align:left;font-weight:700;">잔여 일평균<br><span style="font-size:9px;font-weight:400;">(${remDays}일)</span></th>`;
     let needTotal=0;
     visChs.forEach(c=>{
       const goal=chMonthGoal(c.k);
       const need=chDailyNeed(c.k,cumul[c.k]);
       needTotal+=need;
       const rate=goal>0?cumul[c.k]/goal:null;
-      th+=`<th style="text-align:right;color:#E65100;background:#FFF8E1;font-weight:400;">${need>0?need.toLocaleString()+'천':'✅'}${rate!==null?`<div style="font-size:9px;color:#888;">목 ${goal.toLocaleString()}천 (${fp(rate)})</div>`:''}</th>`;
+      th+=`<th style="top:72px;text-align:right;color:#E65100;background:#FFF8E1;font-weight:400;">${need>0?need.toLocaleString()+'천':'✅'}${rate!==null?`<div style="font-size:9px;color:#888;">목 ${goal.toLocaleString()}천 (${fp(rate)})</div>`:''}</th>`;
     });
-    th+=`<th style="text-align:right;color:#E65100;background:#FFF8E1;font-weight:700;border-bottom:2px solid #FFE082;">${needTotal>0?needTotal.toLocaleString()+'천':'✅'}</th></tr>`;
+    th+=`<th style="top:72px;text-align:right;color:#E65100;background:#FFF8E1;font-weight:700;border-bottom:2px solid #FFE082;">${needTotal>0?needTotal.toLocaleString()+'천':'✅'}</th></tr>`;
   }
   th+=`</thead>`;
 
