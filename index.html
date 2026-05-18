@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>✨GLOWNY SALES DASHBOARD</title>
+<title>GLOWNY SALES DASHBOARD</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -11,7 +11,7 @@ html{font-size:13px;}
 body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;background:#EEECE7;color:#1a1a1a;min-height:100vh;}
 
 /* ── Header ── */
-.hd{background:#111;color:#fff;padding:12px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.hd{background:#111;color:#fff;padding:12px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:50;}
 .hd-l{display:flex;flex-direction:column;gap:1px;}
 .hd-brand{font-size:9px;color:#666;letter-spacing:.14em;text-transform:uppercase;}
 .hd-title{font-size:14px;font-weight:700;}
@@ -28,7 +28,7 @@ body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif
 .btn-blue:hover{background:#1D4ED8;}
 
 /* ── Nav ── */
-.nav{background:#fff;border-bottom:1px solid #E2E0DB;padding:0 22px;display:flex;align-items:center;gap:0;justify-content:space-between;flex-wrap:wrap;}
+.nav{background:#fff;border-bottom:1px solid #E2E0DB;padding:0 22px;display:flex;align-items:center;gap:0;justify-content:space-between;flex-wrap:wrap;position:sticky;top:55px;z-index:49;}
 .tab-g{display:flex;}
 .tab,.vtab{padding:12px 15px;font-size:12px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:#888;white-space:nowrap;transition:color .12s;}
 .tab:hover,.vtab:hover{color:#333;}
@@ -736,16 +736,35 @@ function renderKPIs(){
       }
     });
   }
-  // YTD: 해당 연도 1~4월 확정 실적 합산 (매장 손익 뷰는 오프라인 기준)
+  // YTD: 마감 월 누계 + 진행 중 월 어제까지 일별 누계
   let ytdAct=0, ytdGoal=null;
+  // 어제 날짜 (DAILY_DETAIL의 일자 인덱스 = 어제일자 - 1)
+  const _ytdYesterday = new Date();
+  _ytdYesterday.setDate(_ytdYesterday.getDate()-1);
+  const _ytdYesterdayDay = _ytdYesterday.getDate();
+  const _ytdCurMo = CURRENT_MONTH + 1; // 1-based 진행 중 월
   if(vw==='ch'){
     const ytdSrc=yr==='2025'?A25:A26;
     ytdAct=chKeys.reduce((s,k)=>{
+      // 1) 마감된 월 누계
       for(let i=0;i<CLOSED_CH;i++) s+=(ytdSrc[k]?.[i]??0);
+      // 2) 진행 중 월: DAILY_DETAIL에서 어제까지 일별 합산 (2026만)
+      if(yr==='2026' && DAILY_DETAIL && DAILY_DETAIL['2026']){
+        const moData = DAILY_DETAIL['2026'][String(_ytdCurMo)] || DAILY_DETAIL['2026'][_ytdCurMo];
+        if(moData && Array.isArray(moData[k])){
+          for(let d=0; d<_ytdYesterdayDay; d++){
+            s += (moData[k][d] || 0);
+          }
+        }
+      }
       return s;
     },0);
     ytdGoal=yr==='2026'?chKeys.reduce((s,k)=>{
       for(let i=0;i<CLOSED_CH;i++) s+=(chGoalEff(k,i,'2026')??0);
+      // 진행 중 월 목표는 일별 비례로 부분 합산 (어제까지 / 월 일수)
+      const monthGoal = chGoalEff(k, CURRENT_MONTH, '2026') ?? 0;
+      const daysInMo = new Date(2026, _ytdCurMo, 0).getDate();
+      s += monthGoal * (_ytdYesterdayDay / daysInMo);
       return s;
     },0):null;
   } else {
@@ -762,7 +781,12 @@ function renderKPIs(){
     },0):null;
   }
   const ytdRate=ytdGoal&&ytdGoal>0?ytdAct/ytdGoal:null;
-  const ytdLbl=yr==='2025'?'2025년 1~4월 누계':'1~4월 누계';
+  // YTD 라벨: 어제 날짜까지 누계임을 명시
+  const _ytdMo = _ytdYesterday.getMonth()+1;
+  const _ytdD = _ytdYesterday.getDate();
+  const ytdLbl = yr==='2025'
+    ? '2025년 1~4월 누계'
+    : (vw==='ch' ? `1/1~${_ytdMo}/${_ytdD} 누계` : '1~4월 누계');
   const dR=totPY>0?fdelta(totCur,totPY):null;
   const vatLbl=ST.vat?'(+VAT)':'(-VAT)';
   const dtNote=!ST.dt?'<span style="font-size:9px;background:#FEF3C7;color:#92400E;padding:1px 5px;border-radius:3px;margin-left:4px;">DT 제외</span>':'';
@@ -2431,9 +2455,12 @@ function mergeData(json){
     // items 반영 — Power Automate에서 보낸 상품 데이터
     if(json.items){
       const raw=typeof json.items==='string'?JSON.parse(json.items):json.items;
-      if(raw && raw.items && Array.isArray(raw.items)){
+      // 빈 배열이면 임베드 미리보기를 유지 (Power Automate 에러 시 fallback)
+      if(raw && raw.items && Array.isArray(raw.items) && raw.items.length > 0){
         ITEMS_DATA = raw;
         ITEMS_LAST_UPDATED = json.updated || null;
+      } else if(raw && raw.error){
+        console.warn('[items] Office Script 에러:', raw.error, raw);
       }
     }
     // 업데이트 날짜 표시
