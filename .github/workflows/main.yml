@@ -3,8 +3,6 @@ name: Sync data.json from OneDrive
 on:
   repository_dispatch:
     types: [update-data]
-  schedule:
-    - cron: '10 2 * * 1-5'
   workflow_dispatch:
 
 permissions:
@@ -17,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Write data.json
-        run: curl -L "${{ secrets.ONEDRIVE_URL }}" -o data.json
+        run: echo '${{ github.event.client_payload.data }}' | base64 -d > data.json
 
       - name: Commit and push
         run: |
