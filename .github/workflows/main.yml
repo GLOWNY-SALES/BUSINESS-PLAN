@@ -1,21 +1,115 @@
-name: Sync data.json from OneDrive
+name: Sync data.json (split payload)
 on:
   repository_dispatch:
-    types: [update-data]
+    types: [update-main, update-items, update-data]
   workflow_dispatch:
 permissions:
   contents: write
+
+# 동시 실행 방지 — items와 main 디스패치가 거의 동시에 와도 순차 처리
+concurrency:
+  group: data-sync
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Write data.json
-        run: echo '${{ github.event.client_payload.data }}' | base64 -d > data.json
+
+      - name: Show event info
+        run: |
+          echo "이벤트 타입: ${{ github.event.action }}"
+
+      - name: Update data.json
+        env:
+          EVENT_TYPE: ${{ github.event.action }}
+          PAYLOAD_DATA: ${{ github.event.client_payload.data }}
+        run: |
+          set -e
+          # 기존 data.json 로드 (없으면 빈 객체)
+          if [ -f data.json ]; then
+            cp data.json data.json.bak
+          else
+            echo '{}' > data.json
+          fi
+
+          # 페이로드 디코드
+          if [ -z "$PAYLOAD_DATA" ]; then
+            echo "❌ client_payload.data가 비어있음"
+            exit 1
+          fi
+          echo "$PAYLOAD_DATA" | base64 -d > payload.json
+
+          # payload 유효성 검증
+          if ! python3 -c "import json; json.load(open('payload.json'))" 2>/dev/null; then
+            echo "❌ payload가 유효한 JSON 아님"
+            head -c 500 payload.json
+            exit 1
+          fi
+
+          PAYLOAD_SIZE=$(stat -c%s payload.json)
+          echo "📦 payload 크기: ${PAYLOAD_SIZE} bytes"
+
+          # 이벤트 타입별 처리
+          python3 << 'EOF'
+          import json, os
+
+          event_type = os.environ.get('EVENT_TYPE', '')
+          print(f"처리 모드: {event_type}")
+
+          with open('data.json') as f:
+              try:
+                  data = json.load(f)
+              except:
+                  data = {}
+
+          with open('payload.json') as f:
+              payload = json.load(f)
+
+          if event_type == 'update-items':
+              # items만 업데이트
+              if 'items' in payload:
+                  data['items'] = payload['items']
+                  print(f"✅ items 키 업데이트 ({len(payload['items']) if isinstance(payload['items'],str) else 'object'} bytes)")
+              if 'updated' in payload:
+                  data['updated'] = payload['updated']
+          elif event_type == 'update-main':
+              # items 제외 모든 키 업데이트
+              for key in ['updated', 'kpi', 'bep', 'daily', 'dailyDetail']:
+                  if key in payload:
+                      data[key] = payload[key]
+                      print(f"✅ {key} 키 업데이트")
+          elif event_type == 'update-data':
+              # 레거시 호환 — 전체 교체
+              data = payload
+              print("✅ 전체 데이터 교체 (레거시 모드)")
+
+          with open('data.json', 'w') as f:
+              json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
+
+          # 결과 요약
+          print("\n📊 data.json 현재 상태:")
+          for key in ['updated', 'kpi', 'bep', 'daily', 'dailyDetail', 'items']:
+              val = data.get(key, '')
+              if val:
+                  size = len(val) if isinstance(val, str) else len(json.dumps(val))
+                  print(f"  - {key}: {size:,} bytes")
+              else:
+                  print(f"  - {key}: (없음)")
+          EOF
+
+          rm -f payload.json data.json.bak
+
       - name: Commit and push
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add data.json
-          git diff --staged --quiet || git commit -m "Auto update $(date +'%Y-%m-%d')"
-          git push
+          if git diff --staged --quiet; then
+            echo "ℹ️  변경 사항 없음"
+          else
+            git commit -m "Auto update [${{ github.event.action }}] $(date +'%Y-%m-%d %H:%M')"
+            git push
+            echo "✅ 푸시 완료"
+          fi
