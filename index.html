@@ -48,6 +48,16 @@ body{font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif
 .kpi-dy{font-size:10px;font-weight:700;margin-top:2px;}
 .kpi-dy.up{color:#059669;}.kpi-dy.dn{color:#DC2626;}
 
+/* 상품분석 KPI: 데스크탑 4컬럼, 좁아지면 자동 축소 */
+#itemKpis{grid-template-columns:repeat(4,1fr);}
+.kpi-row{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;margin-top:2px;}
+.kpi-row > div:last-child{text-align:right;}
+@media(max-width:860px){
+  #itemKpis{grid-template-columns:repeat(2,1fr) !important;}
+  .kpi-row{flex-direction:column;align-items:flex-start;gap:2px;}
+  .kpi-row > div:last-child{text-align:left;}
+}
+
 /* ── Chart card ── */
 .card{background:#fff;border-radius:9px;border:1px solid #E2E0DB;margin-bottom:14px;}
 .card-hd{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #F0EFEB;gap:10px;flex-wrap:wrap;}
@@ -244,6 +254,21 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
 .it-tbl-wrap thead tr.it-subttl td{position:sticky;top:28px;z-index:4;background:#FFF8E7;color:#92400E;font-weight:700;padding:6px 6px;text-align:right;font-size:11px;border-bottom:1.5px solid #E2E0DB;white-space:nowrap;}
 .it-tbl-wrap thead tr.it-subttl td.it-subttl-lbl{text-align:left;font-size:10.5px;letter-spacing:-0.2px;}
 .it-tbl-wrap thead tr.it-subttl td.muted{color:#bbb;font-weight:500;}
+
+/* 모바일: 첫 2컬럼(# + 상품명) 좌측 sticky */
+@media(max-width:860px){
+  .it-tbl-wrap tbody td:nth-child(1),
+  .it-tbl-wrap tbody td:nth-child(2){position:sticky;background:#fff;z-index:2;}
+  .it-tbl-wrap tbody td:nth-child(1){left:0;}
+  .it-tbl-wrap tbody td:nth-child(2){left:42px;box-shadow:2px 0 4px -2px rgba(0,0,0,0.10);}
+  .it-tbl-wrap tbody tr:hover td:nth-child(1),
+  .it-tbl-wrap tbody tr:hover td:nth-child(2){background:#FAFAF8;}
+  /* thead 첫 2컬럼: top + left 동시 sticky → z-index 상향 */
+  .it-tbl-wrap thead tr:first-child th:nth-child(1){left:0;z-index:7;}
+  .it-tbl-wrap thead tr:first-child th:nth-child(2){left:42px;z-index:7;box-shadow:2px 0 4px -2px rgba(0,0,0,0.10);}
+  /* subtotal 라벨(colspan=3) 첫 td도 좌측 sticky */
+  .it-tbl-wrap thead tr.it-subttl td:first-child{left:0;z-index:6;box-shadow:2px 0 4px -2px rgba(0,0,0,0.10);}
+}
 
 /* 상품분석 — 검색창 */
 .it-search-box{padding:5px 10px;border-radius:6px;border:1.5px solid #E2E0DB;font-size:11px;width:220px;font-family:inherit;background:#fff;}
@@ -1952,17 +1977,16 @@ function renderItemKPIs(){
   const fmN = n=>n.toLocaleString();
 
   const kpiC = document.getElementById('itemKpis');
-  kpiC.style.gridTemplateColumns = 'repeat(4, 1fr)';
   kpiC.innerHTML = `
     <div class="kpi">
       <div class="kpi-lbl">${wkFull} 판매 수량</div>
       <div class="kpi-val">${fmN(w1)} <span style="font-size:11px;color:#999;">개</span></div>
-      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;margin-top:2px;">
+      <div class="kpi-row">
         <div>
           <div class="kpi-sub">WoW</div>
           <div class="kpi-dy ${wow!==null?(wow>=0?'up':'dn'):''}">${wow!==null?((wow>=0?'+':'')+(wow*100).toFixed(1)+'%'):'—'}</div>
         </div>
-        <div style="text-align:right;">
+        <div>
           <div class="kpi-sub">4주 평균</div>
           <div style="font-size:13px;font-weight:700;color:#555;">${fmN(Math.round(w4/4))} <span style="font-size:10px;color:#999;font-weight:500;">개</span></div>
         </div>
