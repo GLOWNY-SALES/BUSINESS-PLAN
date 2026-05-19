@@ -197,6 +197,7 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
 .it-cat-tag{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.02em;}
 .it-col-GC{background:#DBEAFE;color:#1D4ED8;}
 .it-col-GY{background:#FCE7F3;color:#BE185D;}
+.it-mup-bl{color:#2563EB;font-weight:700;}
 .it-mup-hi{color:#059669;font-weight:700;}
 .it-mup-md{color:#D97706;font-weight:600;}
 .it-mup-lo{color:#DC2626;font-weight:600;}
@@ -2338,7 +2339,7 @@ function renderItemTable(){
     const w1 = itW1(it, wkIdx);
     const qsCum = itQsCum(it, wkIdx);
     const mup = parseFloat(it.mup)||0;
-    const mupCls = mup>=4?'it-mup-hi':mup>=3?'it-mup-md':'it-mup-lo';
+    const mupCls = mup>=5?'it-mup-bl':mup>=4?'it-mup-hi':mup>=3?'it-mup-md':'it-mup-lo';
     const colTag = `<span class="it-cat-tag it-col-${it.col||'X'}">${it.col||'—'}</span>`;
     const sub = `${it.sty||''}${it.clr?'/'+it.clr:''} · '${it.yr||'?'} ${it.sn||''} · ${it.cat||''}`;
     const isReord = String(it.reord||'').trim()==='리오더';
