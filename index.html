@@ -240,6 +240,9 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
 /* 상품분석 — 헤더 sticky */
 .it-tbl-wrap{max-height:680px;overflow-y:auto;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .it-tbl-wrap thead th{position:sticky;top:0;z-index:5;background:#F5F4F0;}
+.it-tbl-wrap thead tr.it-subttl td{position:sticky;top:28px;z-index:4;background:#FFF8E7;color:#92400E;font-weight:700;padding:6px 6px;text-align:right;font-size:11px;border-bottom:1.5px solid #E2E0DB;white-space:nowrap;}
+.it-tbl-wrap thead tr.it-subttl td.it-subttl-lbl{text-align:left;font-size:10.5px;letter-spacing:-0.2px;}
+.it-tbl-wrap thead tr.it-subttl td.muted{color:#bbb;font-weight:500;}
 
 /* 상품분석 — 검색창 */
 .it-search-box{padding:5px 10px;border-radius:6px;border:1.5px solid #E2E0DB;font-size:11px;width:220px;font-family:inherit;background:#fff;}
@@ -2287,21 +2290,43 @@ function renderItemTable(){
   const endIdx = pgSize > 0 ? Math.min(total, startIdx + pgSize) : total;
   const pageItems = items.slice(startIdx, endIdx);
 
-  // 헤더
+  // subtotal 합계 (필터 적용된 전체 — 페이지 무관)
+  let sumQs=0, sumW1=0, sumWh=0, sumSt=0;
+  items.forEach(it=>{
+    sumQs += itQsCum(it, wkIdx);
+    sumW1 += itW1(it, wkIdx);
+    sumWh += (it.wh||0);
+    sumSt += (it.st||0);
+  });
+
+  // 헤더 + subtotal
   let th = `<thead><tr>
     <th style="min-width:30px;">#</th>
     <th style="min-width:130px;">상품명</th>
     <th style="min-width:90px;">분류</th>
     <th>TAG가</th>
     <th>M/UP</th>
-    <th>누계수량</th>
-    <th>최근1주</th>
-    <th style="min-width:65px;">최근4주</th>
+    <th>누계판매</th>
+    <th>1주판매</th>
+    <th style="min-width:65px;">스파크라인(4주)</th>
     <th style="min-width:70px;">채널 MIX</th>
     <th>창고재고</th>
     <th>매장재고</th>
     <th>운영가능주차</th>
     <th>리오더</th>
+  </tr>
+  <tr class="it-subttl">
+    <td colspan="3" class="it-subttl-lbl">∑ 필터 합계 · ${total.toLocaleString()}개 아이템</td>
+    <td class="muted">—</td>
+    <td class="muted">—</td>
+    <td>${sumQs.toLocaleString()}</td>
+    <td>${sumW1.toLocaleString()}</td>
+    <td class="muted">—</td>
+    <td class="muted">—</td>
+    <td>${sumWh.toLocaleString()}</td>
+    <td>${sumSt.toLocaleString()}</td>
+    <td class="muted">—</td>
+    <td class="muted">—</td>
   </tr></thead><tbody>`;
 
   pageItems.forEach((it, idx)=>{
@@ -2388,10 +2413,10 @@ function renderItemFn(){
   document.getElementById('itFn').innerHTML = `
     * <strong>데이터 출처</strong>: 글로니 주차별 판매현황 시트 '아이템별 판매현황' 탭<br>
     * <strong>주차 기준</strong>: ISO 8601 (월요일~일요일) — 예: 26-19 주차 = 5/4(월)~5/10(일) · 우측 상단 드롭다운으로 변경<br>
-    * <strong>누계수량</strong>: AD열(출고/증정 수량) 기준 — 선택 주차까지 누계로 자동 보정<br>
+    * <strong>누계판매</strong>: AD열(출고/증정 수량) 기준 — 선택 주차까지 누계로 자동 보정 · <strong>1주판매</strong>: 선택 주차 1주간 수량<br>
     * <strong>운영가능주차</strong>: DM열 (현재 재고로 몇 주 운영 가능한지) · <strong>리오더검토</strong>: DN열 · <strong>TAG가/M/UP</strong>: W/X열<br>
     * <strong>매장/창고 재고비 기준</strong>: 글로니 매출비(온라인 55% / 오프라인 45%) 반영 → 10%↓ 매장 부족 · 10~25% 정상 · 25%↑ 매장 과잉<br>
-    * <strong>스파크라인</strong>: 최근 4주 추이 · <strong>채널 MIX</strong>: 자사몰(파랑) / 무신사(보라) / 29CM(청록) / 오프라인(녹색) / ETC(회색)<br>
+    * <strong>스파크라인(4주)</strong>: 최근 4주 추이 · <strong>채널 MIX</strong>: 자사몰(파랑) / 무신사(보라) / 29CM(청록) / 오프라인(녹색) / ETC(회색)<br>
     * 현재 기준 주차: <strong>${wk}${range?` (${range})`:''}</strong>${ITEMS_LAST_UPDATED?` · 마지막 업데이트: ${ITEMS_LAST_UPDATED}`:''}`;
 }
 
