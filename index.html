@@ -1950,22 +1950,27 @@ function renderItemKPIs(){
   const fmW = n=>n>=1e8?(n/1e8).toFixed(1)+'억':n>=1e4?(Math.round(n/1e4)).toLocaleString()+'만':n.toLocaleString();
   const fmN = n=>n.toLocaleString();
 
-  document.getElementById('itemKpis').innerHTML = `
+  const kpiC = document.getElementById('itemKpis');
+  kpiC.style.gridTemplateColumns = 'repeat(4, 1fr)';
+  kpiC.innerHTML = `
     <div class="kpi">
       <div class="kpi-lbl">${wkFull} 판매 수량</div>
       <div class="kpi-val">${fmN(w1)} <span style="font-size:11px;color:#999;">개</span></div>
-      <div class="kpi-sub">WoW</div>
-      <div class="kpi-dy ${wow!==null?(wow>=0?'up':'dn'):''}">${wow!==null?((wow>=0?'+':'')+(wow*100).toFixed(1)+'%'):'—'}</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;margin-top:2px;">
+        <div>
+          <div class="kpi-sub">WoW</div>
+          <div class="kpi-dy ${wow!==null?(wow>=0?'up':'dn'):''}">${wow!==null?((wow>=0?'+':'')+(wow*100).toFixed(1)+'%'):'—'}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="kpi-sub">4주 평균</div>
+          <div style="font-size:13px;font-weight:700;color:#555;">${fmN(Math.round(w4/4))} <span style="font-size:10px;color:#999;font-weight:500;">개</span></div>
+        </div>
+      </div>
     </div>
     <div class="kpi">
       <div class="kpi-lbl">${wkFull} 추정 매출 (TAG가)</div>
       <div class="kpi-val" style="color:#2563EB;">${fmW(revEst)}</div>
       <div class="kpi-sub">개당 평균 ${w1>0?Math.round(revEst/w1/1000):0}천원</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-lbl">${wkFull} 1주 누계</div>
-      <div class="kpi-val">${fmN(w1)} <span style="font-size:11px;color:#999;">개</span></div>
-      <div class="kpi-sub">4주 평균 ${fmN(Math.round(w4/4))} 개</div>
     </div>
     <div class="kpi">
       <div class="kpi-lbl">재고 TTL</div>
