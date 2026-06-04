@@ -1094,8 +1094,8 @@ function renderKPIs(){
     </div>
     <div class="kpi">
       <div class="kpi-lbl">목표 달성률 (연간)</div>
-      <div class="kpi-val ${totGoal>0&&totCur/totGoal>=1?'pos':''}">${totGoal>0?fp(totCur/totGoal):'—'}</div>
-      <div class="kpi-sub">시뮬 포함 기준</div>
+      <div class="kpi-val ${totGoal>0&&totCurProj/totGoal>=1?'pos':''}">${totGoal>0?fp(totCurProj/totGoal):'—'}</div>
+      <div class="kpi-sub">시뮬 포함 기준 · 6월 예상마감 반영</div>
     </div>
     <div class="kpi">
       <div class="kpi-lbl">YoY 성장률</div>
@@ -2961,8 +2961,9 @@ function mergeData(json){
         src[k].forEach((v,i)=>{
           if(!(v&&v>0)) return;
           if(i>=CLOSED_CH){
-            // 시뮬 월: data.json 값은 항상 덮어씀 (이전 시뮬값 대체)
-            ST.chOv[targetKey+'-'+i]=v;
+            // 도매(ws)는 월배치 정산 — 진행중 월 daily(목표성/미정산 값)는 무시해 0 유지
+            if(targetKey==='ws_dom' && i===CURRENT_MONTH){ /* 도매 진행중월 daily 주입 차단 */ }
+            else ST.chOv[targetKey+'-'+i]=v; // 시뮬 월: data.json 값은 항상 덮어씀
           } else if(A26[targetKey][i]==null){
             // 확정 월인데 마감실적 미입력 → daily 월합계로 자동 채움 (월 전환 직후 공백 방지)
             A26[targetKey][i]=v;
