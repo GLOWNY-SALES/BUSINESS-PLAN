@@ -3416,8 +3416,8 @@ function mergeData(json){
             // 도매(ws)는 월배치 정산 — 진행중 월 daily(목표성/미정산 값)는 무시해 0 유지
             if(k==='ws_dom' && i===CURRENT_MONTH){ /* raw ws_dom 진행중월 팬텀만 차단 (ws_glb 경유 실적은 통과) */ }
             else ST.chOv[targetKey+'-'+i]=v; // 시뮬 월: data.json 값은 항상 덮어씀
-          } else if(A26[targetKey][i]==null){
-            // 확정 월인데 마감실적 미입력 → daily 월합계로 자동 채움 (월 전환 직후 공백 방지)
+          } else {
+            // 확정 월: data.json 값으로 항상 덮어씀 (하드코딩보다 data.json 우선)
             A26[targetKey][i]=v;
           }
         });
