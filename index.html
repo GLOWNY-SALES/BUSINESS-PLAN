@@ -426,15 +426,7 @@ table.mkt-dt tbody tr:hover td:first-child{background:#F5F4EF;}
     </div>
     <div class="tbl-wrap" id="tblWrap"></div>
   </div>
-  <div class="ap" id="apPanel" style="display:none;">
-    <div class="ap-hd" id="apToggle">
-      <span class="ap-ttl">⚙ 매장 비용 가정 편집 <span style="font-size:10px;font-weight:400;color:#aaa;">— 손익 시뮬에 즉시 반영</span></span>
-      <span id="apArr">▼</span>
-    </div>
-    <div class="ap-body" id="apBody">
-      <div class="ap-grid" id="apContent"></div>
-    </div>
-  </div>
+  <!-- apPanel removed -->
   <div class="fn" id="fn"></div>
   <div id="dailySection" style="display:none;">
     <div class="kpis" id="dailyKpis"></div>
@@ -713,7 +705,7 @@ const G26={
   cm29:      [250e6,330e6,350e6,430e6,520e6,600e6,460e6,440e6,630e6,660e6,550e6,280e6],
   cafe24en:  [60e6,100e6,100e6,50e6,70e6,70e6,70e6,50e6,80e6,80e6,80e6,50e6],
   mssglobal: [60e6,60e6,80e6,40e6,40e6,40e6,40e6,30e6,40e6,40e6,50e6,30e6],
-  misswu:    [null,null,143202600,116963400,91585800,20607000,null,null,null,null,null,null],
+  misswu:    [0,0,0,0,0,0,0,0,0,0,0,0],
   hannam:    [220e6,270e6,350e6,450e6,500e6,450e6,450e6,350e6,420e6,500e6,380e6,330e6],
   dosan:     [170e6,200e6,230e6,320e6,400e6,350e6,360e6,280e6,340e6,400e6,310e6,260e6],
   ssg:       [100e6,100e6,120e6,150e6,200e6,160e6,160e6,120e6,150e6,200e6,150e6,120e6],
@@ -745,7 +737,7 @@ const A26={
   cm29:      [147044306,343374445,376157639,478837460,...n8],
   cafe24en:  [42995361, 29144375, 66105127, 29436580,...n8],
   mssglobal: [28292475, 27324087, 42604367, 63793952,...n8],
-  misswu:    [0,        0,        143202600,116963400,55371000,...n8.slice(1)],
+  misswu:    [null,null,143202600,116963400,91585800,20607000,null,null,null,null,null,null],
   hannam:    [231079174,286376100,453010400,532601603,...n8],
   dosan:     [131261403,233611700,330339519,406608578,...n8],
   ssg:       [64949010, 106375800,130147680,125516000,...n8],
@@ -918,7 +910,10 @@ function chSimEff(k,i){
 function chDispEff(k,i,yr){
   const act=chAct(k,i,yr);
   if(act!==null) return act; // 확정 실적
-  if(yr==='2026'&&i<CLOSED_CH) return 0; // 확정월 미입력 = 0 (목표·시뮬 폴백 금지)
+  if(yr==='2026'&&i<CLOSED_CH){
+    if(k==='misswu') return null; // misswu 미입력 월 → — 표시
+    return 0; // 확정월 미입력 = 0 (목표·시뮬 폴백 금지)
+  }
   if(yr==='2026'&&i===CURRENT_MONTH){
     // 진행중 월: ST.chOv에 있으면 그 값, 없으면 0
     if(k==='ws_glb'&&!ST.dt) return 0;
@@ -1401,8 +1396,7 @@ function renderChTable(){
           const rate=goal>0&&rawVal>0?rawVal/goal:null;
           const rateTag=rate!==null?`<div style="margin-top:2px;">${rateBdg(rate)}</div>`:'';
           const goalDisp=goal?`<div class="cell-goal">목 ${fm(goal,'ch')}</div>`:'';
-          if(ch.k==='misswu'){
-            groupsHtml+=`<td style="background:#F0FDF4;"><span class="muted" style="font-size:10px;">—</span></td>`;
+          if(false){
           } else {
             groupsHtml+=`<td style="background:#F0FDF4;"><input class="cell-sim-in" type="text" inputmode="numeric"
               data-k="${ch.k}-${i}" data-ck="${ch.k}" data-ci="${i}"
@@ -1507,291 +1501,456 @@ function attachChInputs(){
 //  P&L TABLE
 // ══════════════════════════════════════════════
 function renderPLDashboard(){
-  const BEP={
+  const D={
     hannam:{
       rev:    [210071976,260341909,411827636,484183275,645322100],
-      labor:  [25623675,24520893,26170739,23594222,24385487],
-      var_sub:[30827545,29840493,30850719,27033455,28087117],
+      oi:     [66884506,101136983,213632672,269342574,391263974],
       rent:   [53175000,53175000,53175000,53175000,53175000],
+      labor:  [25623675,24520893,26170739,23594222,24385487],
       depr:   [10052778,12805556,12805556,12805556,12805556],
       card:   [4831655,5987864,9472036,11136215,14842408],
+      var_sub:[30827545,29840493,30850719,27033455,28087117],
       fix_sub:[68059433,71968419,75452591,77116771,80822964],
-      oi:     [66884506,101136983,213632672,269342574,391263974],
-      rentType:'fixed',tgt:[220e6,270e6,350e6,450e6,500e6]
+      tgt:    [200e6,245e6,318e6,409e6,454e6],
+      rentType:'fixed'
     },
     dosan:{
       rev:    [119328548,212374273,300308654,369644162,471945917],
-      labor:  [17354996,18420000,17504500,17872333,19578373],
-      var_sub:[20375276,21822590,20374970,20215380,22499913],
+      oi:     [11442307,78087183,141208641,193049383,251775397],
       rent:   [50000000,50000000,50000000,50000000,50000000],
+      labor:  [17354996,18420000,17504500,17872333,19578373],
       depr:   [9140000,9140000,9140000,9140000,9140000],
       card:   [2744557,4884608,6907099,8501816,10854756],
+      var_sub:[20375276,21822590,20374970,20215380,22499913],
       fix_sub:[61884557,64024608,66047099,67641816,69994756],
-      oi:     [11442307,78087183,141208641,193049383,251775397],
-      rentType:'fixed',tgt:[170e6,200e6,230e6,320e6,400e6]
+      tgt:    [154e6,181e6,209e6,290e6,363e6],
+      rentType:'fixed'
     },
     ssg:{
       rev:    [59044555,96705273,118316073,114105455,151791355],
-      labor:  [10131629,9775000,10825000,10925000,11250000],
-      var_sub:[10491669,10016330,11510420,11163417,11687660],
+      oi:     [14997274,32123589,36113190,37482113,49294324],
       rent:   [16532475,27077476,33128500,31949527,42501579],
+      labor:  [10131629,9775000,10825000,10925000,11250000],
       depr:   [3472222,3472222,3472222,3472222,3472222],
       card:   [1358025,2224221,2721270,2624425,3491201],
+      var_sub:[10491669,10016330,11510420,11163417,11687660],
       fix_sub:[21362722,32773920,39321992,38046175,49465003],
-      oi:     [14997274,32123589,36113190,37482113,49294324],
-      rentType:'pct',tgt:[100e6,120e6,160e6,130e6,200e6]
+      tgt:    [90e6,90e6,109e6,118e6,181e6],
+      rentType:'pct'
     }
   };
+  const STORES=[
+    {k:'hannam',n:'한남점',   c:'#2563EB',light:'#DBEAFE'},
+    {k:'dosan', n:'도산점',   c:'#059669',light:'#D1FAE5'},
+    {k:'ssg',   n:'신세계강남',c:'#D97706',light:'#FEF3C7'},
+  ];
   const MOS=['1월','2월','3월','4월','5월'];
-  const N=5, CUR=4;
+  const COST_KEYS=[
+    {key:'total', lbl:'비용 합계 (전체)'},
+    {key:'rent',  lbl:'임차료'},
+    {key:'labor', lbl:'인건비'},
+    {key:'depr',  lbl:'감가상각'},
+    {key:'card',  lbl:'카드수수료'},
+    {key:'var_sub',lbl:'변동비 기타'},
+    {key:'fix_sub',lbl:'고정비 합계'},
+    {key:'oi',    lbl:'영업이익률',isOI:true},
+  ];
+  const N=5;
+  if(typeof window._plMo==='undefined') window._plMo=4;
+  if(typeof window._plCost==='undefined') window._plCost='total';
 
   function pc(v,r){return(r&&r>0)?Math.round(v/r*1000)/10:null;}
+  function getVal(k,key,i){
+    const d=D[k];
+    if(key==='total') return d.var_sub[i]+d.fix_sub[i];
+    return d[key][i];
+  }
   function fw(v){
     if(v===null||v===undefined)return'—';
     const a=Math.abs(v);
     if(a>=1e8)return(Math.round(v/1e7)/10).toFixed(1)+'억';
-    if(a>=1e4)return Math.round(v/1e4).toLocaleString()+'만';
-    return v.toLocaleString();
+    return Math.round(v/1e4).toLocaleString()+'만';
   }
   function fp(v){return v===null?'—':v.toFixed(1)+'%';}
-  function dlt(cur,prv){return(cur!==null&&prv!==null)?Math.round((cur-prv)*10)/10:null;}
-  function arw(d,invert){
-    if(d===null||Math.abs(d)<0.05)return'<span style="color:var(--color-text-secondary);font-size:10px;">±0</span>';
-    const bad=(d>0&&!invert)||(d<0&&invert);
-    return`<span style="color:${bad?'#E24B4A':'#1D9E75'};font-size:10px;">${d>0?'▲':'▼'}${Math.abs(d).toFixed(1)}%p</span>`;
+  function dd(c,p2){return(c!==null&&p2!==null)?Math.round((c-p2)*10)/10:null;}
+  function arw(d,isCost){
+    if(d===null||Math.abs(d)<0.05)return'<span style="color:#bbb;font-size:10px;">±0</span>';
+    const bad=(d>0&&isCost)||(d<0&&!isCost);
+    return`<span style="color:${bad?'#DC2626':'#059669'};font-size:10px;">${d>0?'▲':'▼'}${Math.abs(d).toFixed(1)}%p</span>`;
+  }
+  function oiC(r){return r>=50?'#059669':r>=30?'#D97706':'#DC2626';}
+  function achC(a){return a>=100?'#059669':a>=80?'#D97706':'#DC2626';}
+
+  const mo=window._plMo, pmo=mo>0?mo-1:null;
+  const selCost=window._plCost;
+  const selConf=COST_KEYS.find(c=>c.key===selCost)||COST_KEYS[0];
+
+  // ── CSS
+  if(!document.getElementById('pl-css')){
+    const s=document.createElement('style');
+    s.id='pl-css';
+    s.textContent=`
+      .pl{padding:0 0 32px;}
+      .pl-tabs{display:flex;gap:6px;margin-bottom:16px;}
+      .pl-tab{padding:5px 14px;font-size:11px;font-weight:700;border-radius:6px;cursor:pointer;
+        border:1px solid #E2E0DB;color:#888;background:#fff;font-family:inherit;transition:all .12s;}
+      .pl-tab:hover{color:#333;border-color:#aaa;}
+      .pl-tab.on{background:#111;color:#fff;border-color:#111;}
+      .pl-tab.closed::after{content:' ✓';font-size:9px;opacity:.6;}
+      .pl-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+      .pl-kpi{background:#fff;border-radius:9px;padding:13px 15px;border:1px solid #E2E0DB;}
+      .pl-kpi-lbl{font-size:9px;color:#999;font-weight:700;letter-spacing:.05em;margin-bottom:5px;text-transform:uppercase;}
+      .pl-kpi-val{font-size:22px;font-weight:700;line-height:1.2;letter-spacing:-.02em;}
+      .pl-kpi-sub{font-size:10px;color:#888;margin-top:4px;}
+      .pl-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+      .pl-card{background:#fff;border-radius:9px;border:1px solid #E2E0DB;}
+      .pl-card-hd{padding:11px 14px;border-bottom:1px solid #F0EFEB;display:flex;justify-content:space-between;align-items:center;}
+      .pl-card-name{font-size:12px;font-weight:700;}
+      .pl-card-oi{font-size:11px;font-weight:700;}
+      .pl-card-meta{padding:7px 14px 5px;font-size:10px;color:#888;display:flex;gap:8px;border-bottom:1px solid #F0EFEB;}
+      .pl-card-body{padding:10px 14px 12px;}
+      .pl-ci{margin-bottom:8px;}
+      .pl-ci-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+      .pl-ci-lbl{font-size:11px;color:#555;display:flex;align-items:center;gap:3px;}
+      .pl-ci-right{display:flex;align-items:center;gap:5px;}
+      .pl-ci-pct{font-size:12px;font-weight:700;color:#1a1a1a;}
+      .pl-ci-amt{font-size:10px;color:#999;}
+      .pl-bar{height:3px;background:#F0EFEB;border-radius:2px;}
+      .pl-bar-f{height:100%;border-radius:2px;}
+      .pl-card-ft{padding:8px 14px 10px;border-top:1px solid #E2E0DB;display:flex;justify-content:space-between;align-items:center;background:#FAFAF8;border-radius:0 0 9px 9px;}
+      .pl-ft-lbl{font-size:11px;font-weight:700;color:#555;}
+      .pl-ft-right{display:flex;align-items:center;gap:5px;}
+      .pl-ft-pct{font-size:13px;font-weight:700;}
+      .pl-ft-amt{font-size:10px;color:#999;}
+      .pl-chart-card{background:#fff;border-radius:9px;border:1px solid #E2E0DB;margin-bottom:16px;}
+      .pl-chart-hd{padding:11px 16px 10px;border-bottom:1px solid #F0EFEB;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+      .pl-chart-title{font-size:12px;font-weight:700;color:#1a1a1a;}
+      .pl-cost-sel{padding:4px 10px;font-size:11px;font-weight:500;border-radius:6px;cursor:pointer;
+        border:1px solid #E2E0DB;color:#333;background:#fff;font-family:inherit;outline:none;}
+      .pl-cost-sel:focus{border-color:#2563EB;}
+      .pl-chart-body{padding:16px 16px 6px;}
+      .pl-leg{display:flex;gap:14px;flex-wrap:wrap;padding:6px 16px 12px;}
+      .pl-leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:#666;}
+      .pl-tbl-card{background:#fff;border-radius:9px;border:1px solid #E2E0DB;}
+      .pl-tbl-hd{padding:11px 16px;border-bottom:1px solid #F0EFEB;display:flex;align-items:center;justify-content:space-between;}
+      .pl-tbl-title{font-size:12px;font-weight:700;}
+      .pl-tbl-note{font-size:10px;color:#aaa;}
+      .pl-tbl{width:100%;border-collapse:collapse;font-size:11px;}
+      .pl-tbl th{padding:6px 10px;font-size:9px;font-weight:700;color:#999;letter-spacing:.04em;text-transform:uppercase;
+        border-bottom:1px solid #E2E0DB;white-space:nowrap;text-align:right;background:#FAFAF8;}
+      .pl-tbl th:first-child{text-align:left;}
+      .pl-tbl td{padding:6px 10px;border-bottom:1px solid #F0EEE9;text-align:right;white-space:nowrap;color:#1a1a1a;}
+      .pl-tbl td:first-child{text-align:left;color:#555;font-weight:500;}
+      .pl-tbl tr.alt td{background:#FAFAF8;}
+      .pl-tbl tr.oi-row td{border-top:1px solid #E2E0DB;font-weight:700;}
+      .pl-tbl tr:last-child td{border-bottom:none;}
+      .pl-tbl .sel-col{background:#EFF6FF!important;font-weight:700;}
+      .pl-tbl .store-hd{color:#fff;font-weight:700;text-align:center;font-size:9px;padding:5px 10px;letter-spacing:.04em;}
+    `;
+    document.head.appendChild(s);
   }
 
-  // ── KPI ──
-  let totR=0,totOI=0,ytdR=0,ytdOI=0,ytdTgt=0;
-  ['hannam','dosan','ssg'].forEach(k=>{
-    const d=BEP[k];
-    totR+=d.rev[CUR]||0; totOI+=d.oi[CUR]||0;
-    for(let i=0;i<N;i++){ytdR+=d.rev[i]||0;ytdOI+=d.oi[i]||0;}
-    for(let i=0;i<N;i++) ytdTgt+=(BTGT26[k]?.[i]||0);
-  });
-  const curTgt=['hannam','dosan','ssg'].reduce((s,k)=>s+(BTGT26[k]?.[CUR]||0),0);
-  const curAch=curTgt>0?Math.round(totR/curTgt*10)/10:null;
-  const oiRate=totR>0?Math.round(totOI/totR*1000)/10:0;
-  const ytdRate=ytdR>0?Math.round(ytdOI/ytdR*1000)/10:0;
-  const ytdAch=ytdTgt>0?Math.round(ytdR/ytdTgt*1000)/10:null;
+  // ── 월 탭
+  let tabH='<div class="pl-tabs">';
+  MOS.forEach((m,i)=>{ tabH+=`<button class="pl-tab closed${i===mo?' on':''}" data-mo="${i}">${m}</button>`; });
+  tabH+='</div>';
 
-  const kpis=[
-    {lbl:'5월 합계매출 (ex-VAT)',val:fw(totR),sub:curAch?`목표 대비 ${fp(curAch)}`:'',c:curAch>=100?'#1D9E75':curAch>=80?'#BA7517':'#E24B4A'},
-    {lbl:'5월 합계 영업이익',val:fw(totOI),sub:`이익률 ${fp(oiRate)}`,c:'#1D9E75'},
-    {lbl:'YTD 누계매출 (1~5월)',val:fw(ytdR),sub:ytdAch?`연간 목표 대비 ${fp(ytdAch)}`:'',c:'#378ADD'},
-    {lbl:'YTD 영업이익',val:fw(ytdOI),sub:`누계 이익률 ${fp(ytdRate)}`,c:'#1D9E75'},
-  ];
-  let kpiH='<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:20px;">';
-  kpis.forEach(({lbl,val,sub,c})=>{
-    kpiH+=`<div style="background:var(--color-background-secondary);border-radius:8px;padding:14px 16px;">
-      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:5px;">${lbl}</div>
-      <div style="font-size:22px;font-weight:500;color:${c};line-height:1.2;">${val}</div>
-      <div style="font-size:11px;color:var(--color-text-secondary);margin-top:4px;">${sub}</div>
-    </div>`;
+  // ── KPI
+  let totR=0,totOI=0,ytdR=0,ytdOI=0,ytdTgt=0,curTgt=0;
+  STORES.forEach(({k})=>{
+    totR+=D[k].rev[mo]; totOI+=D[k].oi[mo]; curTgt+=D[k].tgt[mo];
+    for(let i=0;i<=mo;i++){ytdR+=D[k].rev[i];ytdOI+=D[k].oi[i];ytdTgt+=D[k].tgt[i];}
+  });
+  const curAch=curTgt>0?totR/curTgt*100:null;
+  const oiRate=totR>0?totOI/totR*100:0;
+  const ytdRate=ytdR>0?ytdOI/ytdR*100:0;
+  const ytdAch=ytdTgt>0?ytdR/ytdTgt*100:null;
+
+  let kpiH='<div class="pl-kpis">';
+  [{lbl:`${MOS[mo]} 합계매출 (ex-VAT)`,val:fw(totR),sub:curAch?`목표 대비 ${fp(curAch)}`:'',c:curAch?achC(curAch):'#1a1a1a'},
+   {lbl:`${MOS[mo]} 영업이익`,val:fw(totOI),sub:`이익률 ${fp(oiRate)}`,c:oiC(oiRate)},
+   {lbl:`YTD 누계매출 (1~${MOS[mo]})`,val:fw(ytdR),sub:ytdAch?`연간 목표 대비 ${fp(ytdAch)}`:'',c:'#2563EB'},
+   {lbl:'YTD 영업이익',val:fw(ytdOI),sub:`누계 이익률 ${fp(ytdRate)}`,c:oiC(ytdRate)},
+  ].forEach(({lbl,val,sub,c})=>{
+    kpiH+=`<div class="pl-kpi"><div class="pl-kpi-lbl">${lbl}</div>
+      <div class="pl-kpi-val" style="color:${c};">${val}</div>
+      <div class="pl-kpi-sub">${sub}</div></div>`;
   });
   kpiH+='</div>';
 
-  // ── 매장 카드 ──
-  const SCFG=[
-    {k:'hannam',n:'한남점',  oc:'#1D9E75',bc:'#378ADD'},
-    {k:'dosan', n:'도산점',  oc:'#1D9E75',bc:'#1D9E75'},
-    {k:'ssg',   n:'신세계강남',oc:'#BA7517',bc:'#BA7517'},
-  ];
+  // ── 매장 카드 (영업이익률 표기 변경)
   const CITEMS=[
-    {key:'rent',   lbl:'임차료'},
-    {key:'labor',  lbl:'인건비'},
-    {key:'depr',   lbl:'감가상각'},
-    {key:'card',   lbl:'카드수수료'},
+    {key:'rent',  lbl:'임차료'},
+    {key:'labor', lbl:'인건비'},
+    {key:'depr',  lbl:'감가상각'},
+    {key:'card',  lbl:'카드수수료'},
     {key:'var_sub',lbl:'변동비 기타'},
   ];
-
-  let cardH='<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:20px;">';
-  SCFG.forEach(({k,n,oc,bc})=>{
-    const d=BEP[k];
-    const r=d.rev[CUR],pr=d.rev[CUR-1];
-    const oi=d.oi[CUR];
-    const oiPct=pc(oi,r);
-    const tgt=d.tgt[CUR];
-    const ach=tgt>0?Math.round(r/tgt*10)/10:null;
-    const achC=ach>=100?'#1D9E75':ach>=80?'#BA7517':'#E24B4A';
+  let cardH='<div class="pl-cards">';
+  STORES.forEach(({k,n,c})=>{
+    const d=D[k];
+    const r=d.rev[mo],pr=pmo!==null?d.rev[pmo]:null;
+    const oi=d.oi[mo],oiP=pc(oi,r);
+    const tgt=d.tgt[mo],ach=tgt>0?r/tgt*100:null;
     const isPct=(k==='ssg');
 
     let items='';
     CITEMS.forEach(({key,lbl})=>{
-      const v=d[key][CUR],pv=d[key][CUR-1];
-      const pct=pc(v,r), ppct=pc(pv,pr);
-      const dd=dlt(pct,ppct);
-      const isFixed=(key==='card')||(isPct&&key==='rent');
-      const rentNote=isPct&&key==='rent'?'<span style="font-size:10px;color:#BA7517;margin-left:3px;">(연동)</span>':'';
-      const barW=Math.min(pct??0,40);
-      items+=`<div style="margin-bottom:9px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;gap:4px;">
-          <span style="font-size:12px;color:var(--color-text-secondary);white-space:nowrap;">${lbl}${rentNote}</span>
-          <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
-            <span style="font-size:13px;font-weight:500;color:var(--color-text-primary);">${fp(pct)}</span>
-            <span style="font-size:11px;color:var(--color-text-secondary);">${fw(v)}</span>
-            ${isFixed?'<span style="font-size:10px;color:var(--color-text-secondary);">고정</span>':arw(dd,true)}
+      const v=d[key][mo],pv=pmo!==null?d[key][pmo]:null;
+      const pct=pc(v,r),ppct=pmo!==null?pc(pv,pr):null;
+      const d2=dd(pct,ppct);
+      const isFixed=key==='card'||(isPct&&key==='rent');
+      const note=isPct&&key==='rent'?`<span style="font-size:9px;color:#D97706;">(연동)</span>`:'';
+      const barW=Math.min(pct??0,35)/35*100;
+      items+=`<div class="pl-ci">
+        <div class="pl-ci-row">
+          <span class="pl-ci-lbl">${lbl}${note}</span>
+          <div class="pl-ci-right">
+            <span class="pl-ci-pct">${fp(pct)}</span>
+            <span class="pl-ci-amt">${fw(v)}</span>
+            ${isFixed||pmo===null?`<span style="font-size:9px;color:#ccc;">고정</span>`:arw(d2,true)}
           </div>
         </div>
-        <div style="height:4px;background:var(--color-background-secondary);border-radius:2px;overflow:hidden;">
-          <div style="height:100%;width:${Math.round(barW/40*100)}%;background:${isPct&&key==='rent'?'#EF9F27':bc};opacity:0.75;border-radius:2px;"></div>
-        </div>
+        <div class="pl-bar"><div class="pl-bar-f" style="width:${barW}%;background:${(isPct&&key==='rent')?'#D97706':c};opacity:.6;"></div></div>
       </div>`;
     });
 
-    const totC=d.var_sub[CUR]+d.fix_sub[CUR];
+    const totC=d.var_sub[mo]+d.fix_sub[mo];
     const totCP=pc(totC,r);
-    const totCPrev=pc(d.var_sub[CUR-1]+d.fix_sub[CUR-1],pr);
-    const totDD=dlt(totCP,totCPrev);
+    const totD=dd(totCP,pmo!==null?pc(d.var_sub[pmo]+d.fix_sub[pmo],pr):null);
 
-    cardH+=`<div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px 16px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:10px;">
-        <span style="font-size:14px;font-weight:500;color:var(--color-text-primary);">${n}</span>
-        <span style="font-size:13px;font-weight:500;color:${oc};">OI ${fp(oiPct)}</span>
+    cardH+=`<div class="pl-card">
+      <div class="pl-card-hd" style="border-left:3px solid ${c};">
+        <span class="pl-card-name" style="color:${c};">${n}</span>
+        <span class="pl-card-oi" style="color:${oiC(oiP??0)};">영업이익률 ${fp(oiP)}</span>
       </div>
-      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;display:flex;gap:8px;align-items:center;">
-        <span>매출 <b style="color:var(--color-text-primary);font-weight:500;">${fw(r)}</b></span>
-        ${ach!==null?`<span style="color:${achC};">목표 ${fp(ach)}</span>`:''}
-        <span style="margin-left:auto;font-size:10px;">전월 대비</span>
+      <div class="pl-card-meta">
+        <span>매출 <b style="color:#1a1a1a;">${fw(r)}</b></span>
+        ${ach!==null?`<span style="color:${achC(ach)};">목표 ${fp(ach)}</span>`:''}
+        ${pmo!==null?'<span style="margin-left:auto;">전월 대비</span>':''}
       </div>
-      ${items}
-      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:0.5px solid var(--color-border-secondary);">
-        <span style="font-size:12px;font-weight:500;color:var(--color-text-primary);">비용 합계</span>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="font-size:14px;font-weight:500;color:#E24B4A;">${fp(totCP)}</span>
-          <span style="font-size:11px;color:var(--color-text-secondary);">${fw(totC)}</span>
-          ${arw(totDD,true)}
+      <div class="pl-card-body">${items}</div>
+      <div class="pl-card-ft">
+        <span class="pl-ft-lbl">비용 합계</span>
+        <div class="pl-ft-right">
+          <span class="pl-ft-pct" style="color:#DC2626;">${fp(totCP)}</span>
+          <span class="pl-ft-amt">${fw(totC)}</span>
+          ${pmo!==null?arw(totD,true):''}
         </div>
       </div>
     </div>`;
   });
   cardH+='</div>';
 
-  // ── 추이 차트 (SVG) ──
-  const W=620,H=170,PL=42,PR=85,PT=14,PB=24,CW=W-PL-PR,CH=H-PT-PB;
+  // ── 차트: 드롭다운 선택, 호버 툴팁
+  const selDropdown=`<select class="pl-cost-sel" id="plCostSel">
+    ${COST_KEYS.map(({key,lbl})=>`<option value="${key}"${key===selCost?' selected':''}>${lbl}</option>`).join('')}
+  </select>`;
+
+  const W=580,H=170,PL=42,PR=20,PT=18,PB=24,CW=W-PL-PR,CH=H-PT-PB;
   const xs=MOS.map((_,i)=>Math.round(PL+CW*i/(N-1)));
-  const MAX_PCT=35;
+  const isOIChart=selConf.isOI;
+  const MAX=isOIChart?70:selCost==='total'?50:40;
 
-  function mkSvgLine(key,clr,dash,storeKey){
-    const d=BEP[storeKey];
-    const pts=MOS.map((_,i)=>pc(d[key][i],d.rev[i]));
-    const coords=pts.map((p,i)=>{
-      if(p===null)return null;
-      return[xs[i], Math.round(PT+CH*(1-Math.min(p,MAX_PCT)/MAX_PCT))];
-    });
-    const valid=coords.filter(Boolean);
-    if(valid.length<2)return'';
-    const pstr=valid.map(([x,y])=>`${x},${y}`).join(' ');
-    const da=dash?'stroke-dasharray="5,3"':'';
-    const dots=valid.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.5" fill="${clr}"/>`).join('');
-    const last=valid[valid.length-1];
-    const lastPct=pts.filter(p=>p!==null).slice(-1)[0];
-    return`<polyline points="${pstr}" fill="none" stroke="${clr}" stroke-width="1.8" ${da}/>${dots}
-      <text x="${last[0]+5}" y="${last[1]+3}" font-size="9" fill="${clr}">${fp(lastPct)}</text>`;
-  }
+  // 각 월별 매장 데이터 미리 계산 (툴팁용)
+  const allPts=STORES.map(({k})=>MOS.map((_,i)=>pc(getVal(k,selCost,i),D[k].rev[i])));
 
-  const grids=[0,10,20,30];
-  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="display:block;">`;
-  grids.forEach(v=>{
-    const y=Math.round(PT+CH*(1-v/MAX_PCT));
-    svg+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
-      <text x="${PL-4}" y="${y+3}" text-anchor="end" font-size="9" fill="var(--color-text-secondary)">${v}%</text>`;
+  const gridVals=isOIChart?[0,20,40,60]:[0,10,20,30,40,50].filter(v=>v<=MAX);
+  let svg=`<svg id="plChartSvg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="display:block;overflow:visible;">`;
+
+  gridVals.forEach(v=>{
+    const y=Math.round(PT+CH*(1-v/MAX));
+    svg+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#F0EFEB" stroke-width="${v===0?1:.5}"/>
+      <text x="${PL-5}" y="${y+3}" text-anchor="end" font-size="9" fill="#bbb">${v}%</text>`;
   });
+
+  // 선택 월 세로 강조선
+  svg+=`<line x1="${xs[mo]}" y1="${PT}" x2="${xs[mo]}" y2="${PT+CH}" stroke="#E8E6E1" stroke-width="1.5" stroke-dasharray="3,2"/>`;
+
   xs.forEach((x,i)=>{
-    svg+=`<text x="${x}" y="${H-4}" text-anchor="middle" font-size="9" fill="var(--color-text-secondary)">${MOS[i]}</text>`;
+    const isSel=i===mo;
+    svg+=`<text x="${x}" y="${H-4}" text-anchor="middle" font-size="9" fill="${isSel?'#1a1a1a':'#bbb'}" font-weight="${isSel?'700':'400'}">${MOS[i]}</text>`;
   });
-  svg+=mkSvgLine('rent','#378ADD',false,'hannam');
-  svg+=mkSvgLine('rent','#1D9E75',false,'dosan');
-  svg+=mkSvgLine('rent','#EF9F27',false,'ssg');
-  svg+=mkSvgLine('labor','#85B7EB',true,'hannam');
-  svg+=mkSvgLine('labor','#5DCAA5',true,'dosan');
-  svg+=mkSvgLine('labor','#FAC775',true,'ssg');
+
+  // 라인 + DOT (레이블 없음)
+  STORES.forEach(({k,c},si)=>{
+    const d=D[k];
+    const pts=allPts[si];
+    const coords=pts.map((pv,i)=>pv!==null?[xs[i],Math.round(PT+CH*(1-Math.min(pv,MAX)/MAX))]:null);
+    const valid=coords.filter(Boolean);
+    if(valid.length<2)return;
+
+    const aP=`M${valid[0][0]},${PT+CH} `+valid.map(([x,y])=>`L${x},${y}`).join(' ')+` L${valid[valid.length-1][0]},${PT+CH} Z`;
+    svg+=`<path d="${aP}" fill="${c}" opacity=".05"/>`;
+    svg+=`<polyline points="${valid.map(([x,y])=>`${x},${y}`).join(' ')}" fill="none" stroke="${c}" stroke-width="2"/>`;
+    coords.forEach((coord,i)=>{
+      if(!coord)return;
+      const [x,y]=coord;
+      const isSel=i===mo;
+      svg+=`<circle class="pl-dot" cx="${x}" cy="${y}" r="${isSel?5:3}" fill="${c}" ${isSel?'stroke="#fff" stroke-width="2"':''}/>`;
+    });
+  });
+
+  // 호버존 — 각 월별 투명 수직 띠 (이벤트 수신용)
+  // data-mi: 월 인덱스, data-pts: JSON 인코딩된 [한남%, 도산%, 신강%]
+  const hoverW=Math.round(CW/(N-1)*0.8);
+  MOS.forEach((_,i)=>{
+    const x=xs[i];
+    const pts3=allPts.map(p=>p[i]);
+    const ptsJson=JSON.stringify(pts3).replace(/"/g,'&quot;');
+    svg+=`<rect class="pl-hover-zone" x="${x-hoverW/2}" y="${PT}" width="${hoverW}" height="${CH}"
+      fill="transparent" style="cursor:crosshair;"
+      data-mi="${i}" data-mo="${MOS[i]}" data-pts="${ptsJson}"/>`;
+  });
+
   svg+='</svg>';
 
-  const legItems=[
-    {c:'#378ADD',lbl:'임차료 한남'},
-    {c:'#1D9E75',lbl:'임차료 도산'},
-    {c:'#EF9F27',lbl:'임차료 신강'},
-    {c:'#85B7EB',lbl:'인건비 한남',dash:true},
-    {c:'#5DCAA5',lbl:'인건비 도산',dash:true},
-    {c:'#FAC775',lbl:'인건비 신강',dash:true},
-  ];
-  const legH=legItems.map(({c,lbl,dash})=>
-    `<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--color-text-secondary);">
-      <svg width="16" height="10"><line x1="0" y1="5" x2="16" y2="5" stroke="${c}" stroke-width="2" ${dash?'stroke-dasharray="4,2"':''}/></svg>${lbl}
-    </div>`
-  ).join('');
-
-  const trendH=`<div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px 16px;margin-bottom:20px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-      <span style="font-size:13px;font-weight:500;color:var(--color-text-primary);">비용 비중 월별 추이 (매출 대비 %)</span>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;">${legH}</div>
-    </div>
-    ${svg}
-    <p style="font-size:11px;color:var(--color-text-secondary);margin-top:8px;padding:8px 10px;background:var(--color-background-secondary);border-radius:6px;margin-bottom:0;">
-      임차료·인건비 비중은 매출 증가에 따라 자연감소. 신강 임차료는 매출 연동(28%) 구조.
-    </p>
+  // 툴팁 HTML (절대 위치, 처음엔 숨김)
+  const tooltipH=`<div id="plTooltip" style="
+    position:absolute;display:none;background:#fff;border:1px solid #E2E0DB;border-radius:8px;
+    padding:9px 12px;font-size:11px;box-shadow:0 4px 12px rgba(0,0,0,.1);
+    pointer-events:none;z-index:100;min-width:130px;font-family:inherit;">
+    <div id="plTtMo" style="font-size:10px;font-weight:700;color:#999;margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;"></div>
+    ${STORES.map(({n,c})=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:3px;">
+      <span style="display:flex;align-items:center;gap:4px;color:#555;">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0;"></span>${n}
+      </span>
+      <span id="plTt_${c.replace('#','')}" style="font-weight:700;color:${c};"></span>
+    </div>`).join('')}
   </div>`;
 
-  // ── 월별 비용 비중 테이블 ──
+  const legH=STORES.map(({c,n})=>
+    `<div class="pl-leg-item">
+      <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="${c}" stroke-width="2"/><circle cx="10" cy="5" r="3" fill="${c}"/></svg>${n}
+    </div>`).join('');
+
+  const chartH=`<div class="pl-chart-card">
+    <div class="pl-chart-hd">
+      <span class="pl-chart-title">${selConf.lbl} — 매장별 월별 추이 (매출 대비 %)</span>
+      ${selDropdown}
+    </div>
+    <div class="pl-chart-body" style="position:relative;">
+      ${svg}
+      ${tooltipH}
+    </div>
+    <div class="pl-leg">${legH}</div>
+  </div>`;
+
+  // ── 상세 테이블 — 최근 N개월 슬라이딩 (현재는 전체 5개월, 6개월 이상이면 최근 5개월)
+  const SHOW_MOS=5;
+  const allMos=MOS;
+  const showStart=Math.max(0,mo+1-SHOW_MOS);
+  const showMos=allMos.slice(showStart,mo+1);
+  const showIdxs=showMos.map((_,i)=>showStart+i);
+  const tblNote=showStart>0?`최근 ${showMos.length}개월 표시 (${allMos[showStart]} ~ ${allMos[mo]})`:'';
+
   const TITEMS=[
     {key:'rent',  lbl:'임차료'},
     {key:'labor', lbl:'인건비'},
     {key:'depr',  lbl:'감가상각'},
     {key:'card',  lbl:'카드수수료'},
-    {key:'var_sub',lbl:'변동비 소계'},
-    {key:'fix_sub',lbl:'고정비 소계'},
-    {key:'oi',    lbl:'영업이익률',isOI:true},
+    {key:'var_sub',lbl:'변동비 기타'},
+    {key:'fix_sub',lbl:'고정비 합계'},
+    {key:'oi',   lbl:'영업이익률',isOI:true},
   ];
 
-  let tblH=`<div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px 16px;">
-    <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:12px;">월별 비용 내역 — 매출 대비 비중 (%)</div>
-    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-    <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:560px;">
-      <colgroup><col style="width:90px;"></colgroup>
+  let tblH=`<div class="pl-tbl-card">
+    <div class="pl-tbl-hd">
+      <span class="pl-tbl-title">월별 비용 비중 상세 — 매출 대비 %</span>
+      <span class="pl-tbl-note">${tblNote}</span>
+    </div>
+    <div style="overflow-x:auto;">
+    <table class="pl-tbl">
       <thead>
-        <tr style="border-bottom:0.5px solid var(--color-border-secondary);">
-          <th style="text-align:left;padding:7px 8px;color:var(--color-text-secondary);font-weight:500;">항목</th>`;
-  SCFG.forEach(({n,bc})=>{
-    tblH+=`<th colspan="${N}" style="text-align:center;padding:7px 8px;color:${bc};font-weight:500;border-left:0.5px solid var(--color-border-tertiary);">${n}</th>`;
+        <tr>
+          <th style="min-width:78px;"></th>`;
+  STORES.forEach(({n,c})=>{
+    tblH+=`<th colspan="${showMos.length}" class="store-hd" style="background:${c};">${n}</th>`;
   });
-  tblH+=`</tr><tr style="border-bottom:0.5px solid var(--color-border-tertiary);">
-    <th style="padding:3px 8px;"></th>`;
-  SCFG.forEach(()=>{
-    MOS.forEach(m=>{
-      tblH+=`<th style="text-align:right;padding:3px 6px;color:var(--color-text-secondary);font-weight:400;font-size:10px;white-space:nowrap;">${m}</th>`;
+  tblH+=`</tr><tr><th></th>`;
+  STORES.forEach(()=>{
+    showIdxs.forEach(mi=>{
+      tblH+=`<th class="${mi===mo?'sel-col':''}">${allMos[mi]}</th>`;
     });
   });
   tblH+=`</tr></thead><tbody>`;
 
   TITEMS.forEach(({key,lbl,isOI},ri)=>{
-    const bg=ri%2===0?'background:var(--color-background-secondary);':'';
-    tblH+=`<tr style="${bg}${isOI?'border-top:1px solid var(--color-border-secondary);':''}">
-      <td style="padding:6px 8px;font-weight:${isOI?'500':'400'};color:${isOI?'var(--color-text-primary)':'var(--color-text-secondary)'};white-space:nowrap;">${lbl}</td>`;
-    SCFG.forEach(({k},si)=>{
-      const d=BEP[k];
-      tblH+=`<td style="border-left:0.5px solid var(--color-border-tertiary);"></td>`.replace('></td>','>')+
-        MOS.map((_,mi)=>{
-          const p=pc(d[key][mi],d.rev[mi]);
-          const pp=mi>0?pc(d[key][mi-1],d.rev[mi-1]):null;
-          const dd=dlt(p,pp);
-          let c=isOI?(p>=50?'#1D9E75':p>=30?'#BA7517':'#E24B4A'):'var(--color-text-primary)';
-          let arwS='';
-          if(!isOI&&dd!==null&&mi>0&&Math.abs(dd)>=0.1){
-            arwS=`<span style="color:${dd>0?'#E24B4A':'#1D9E75'};font-size:9px;"> ${dd>0?'▲':'▼'}</span>`;
-          }
-          return`<td style="text-align:right;padding:6px 6px;color:${c};font-weight:${isOI?'500':'400'};white-space:nowrap;">${fp(p)}${arwS}</td>`;
-        }).join('');
+    tblH+=`<tr class="${ri%2===0?'alt':''}${isOI?' oi-row':''}"><td>${lbl}</td>`;
+    STORES.forEach(({k})=>{
+      const d=D[k];
+      showIdxs.forEach(mi=>{
+        const pct=pc(d[key][mi],d.rev[mi]);
+        const ppct=mi>0?pc(d[key][mi-1],d.rev[mi-1]):null;
+        const d2=dd(pct,ppct);
+        const isSel=mi===mo;
+        const c=isOI?oiC(pct??0):'inherit';
+        let arwS='';
+        if(!isOI&&d2!==null&&mi>0&&Math.abs(d2)>=0.1){
+          arwS=`<span style="color:${d2>0?'#DC2626':'#059669'};font-size:9px;">${d2>0?'▲':'▼'}</span>`;
+        }
+        tblH+=`<td class="${isSel?'sel-col':''}" style="color:${c};font-weight:${isOI?'700':'400'};">${fp(pct)}${arwS}</td>`;
+      });
     });
     tblH+=`</tr>`;
   });
 
   tblH+=`</tbody></table></div>
-    <p style="font-size:10px;color:var(--color-text-secondary);margin-top:8px;margin-bottom:0;">▲▼ = 전월 대비 비중 증감&nbsp;&nbsp;영업이익률 ≥50% 녹색 · ≥30% 주황 · 미만 빨강</p>
+    <div style="padding:7px 14px 10px;font-size:9px;color:#aaa;">
+      ▲▼ = 전월 대비 비중 증감 &nbsp;·&nbsp; 영업이익률 ≥50% 녹색 · ≥30% 주황 · 미만 빨강 &nbsp;·&nbsp; 음영 열 = 선택 월
+    </div>
   </div>`;
 
-  document.getElementById('plSection').innerHTML=kpiH+cardH+trendH+tblH;
+  // ── 조립
+  const sec=document.getElementById('plSection');
+  sec.innerHTML=`<div class="pl">${tabH}${kpiH}${cardH}${chartH}${tblH}</div>`;
+
+  sec.querySelectorAll('.pl-tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{ window._plMo=parseInt(btn.dataset.mo); renderPLDashboard(); });
+  });
+  document.getElementById('plCostSel').addEventListener('change',e=>{
+    window._plCost=e.target.value; renderPLDashboard();
+  });
+
+  // ── 툴팁 이벤트
+  const tt=document.getElementById('plTooltip');
+  const ttMo=document.getElementById('plTtMo');
+  const storeColors=STORES.map(({c})=>c.replace('#',''));
+
+  sec.querySelectorAll('.pl-hover-zone').forEach(zone=>{
+    zone.addEventListener('mouseenter', e=>{
+      const mi=parseInt(zone.dataset.mi);
+      const moLbl=zone.dataset.mo;
+      const pts=JSON.parse(zone.dataset.pts);
+      ttMo.textContent=moLbl;
+      storeColors.forEach((cId,si)=>{
+        const el=document.getElementById('plTt_'+cId);
+        if(el) el.textContent=pts[si]!==null?pts[si].toFixed(1)+'%':'—';
+      });
+      // 위치 계산 — SVG 기준 상대 위치
+      const chartBody=zone.closest('.pl-chart-body');
+      const bodyRect=chartBody.getBoundingClientRect();
+      const svgEl=document.getElementById('plChartSvg');
+      const svgRect=svgEl.getBoundingClientRect();
+      const scaleX=svgRect.width/580;
+      // zone의 SVG 좌표 x (data-mi 기반으로 xs 재계산)
+      const PL2=42,PR2=20,CW2=580-PL2-PR2,N2=5;
+      const svgX=PL2+CW2*mi/(N2-1);
+      const screenX=svgRect.left-bodyRect.left+svgX*scaleX;
+      // 툴팁 너비 고려해 왼쪽/오른쪽 결정
+      const ttW=140;
+      const left=screenX+(mi>=N2-2?-(ttW+8):12);
+      tt.style.left=left+'px';
+      tt.style.top='10px';
+      tt.style.display='block';
+    });
+    zone.addEventListener('mouseleave',()=>{ tt.style.display='none'; });
+  });
 }
+
+
+
 
 
 function renderPLTable(){
@@ -1964,7 +2123,7 @@ function attachPLInputs(){
 // ══════════════════════════════════════════════
 function renderAssump(){
   const show=ST.view==='pl'&&(ST.yr==='2026'||ST.yr==='cmp');
-  document.getElementById('apPanel').style.display=show?'':'none';
+  // apPanel removed
   if(!show) return;
   const sts=[{k:'hannam',n:'한남점',cls:'hn'},{k:'dosan',n:'도산점',cls:'ds'},{k:'ssg',n:'신세계강남',cls:'sg'}];
   let h='';
@@ -1980,7 +2139,7 @@ function renderAssump(){
     });
     h+='</div>';
   });
-  document.getElementById('apContent').innerHTML=h;
+  // apContent removed
   document.querySelectorAll('.ap-in').forEach(el=>{
     el.addEventListener('focus',e=>{e.target.value=parseFloat(e.target.value.replace(/,/g,'')).toString();e.target.select();});
     el.addEventListener('blur',e=>{
@@ -3218,11 +3377,7 @@ document.querySelectorAll('.gf-btn').forEach(b=>b.addEventListener('click',()=>{
 document.getElementById('btnVat').addEventListener('click',()=>{ST.vat=!ST.vat;render();});
 document.getElementById('btnDt').addEventListener('click',()=>{ST.dt=!ST.dt;render();});
 
-document.getElementById('apToggle').addEventListener('click',()=>{
-  const b=document.getElementById('apBody');
-  b.classList.toggle('open');
-  document.getElementById('apArr').textContent=b.classList.contains('open')?'▲':'▼';
-});
+// apToggle removed
 
 document.getElementById('btnReset').addEventListener('click',()=>{
   if(confirm('모든 시뮬레이션 입력값과 비용 가정을 기본값으로 초기화할까요?')){
