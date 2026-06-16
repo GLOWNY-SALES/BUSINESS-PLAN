@@ -1013,10 +1013,9 @@ function renderKPIs(){
   const _ytdYesterdayDay = _ytdYesterday.getDate();
   const _ytdCurMo = CURRENT_MONTH + 1; // 1-based 진행 중 월
   if(vw==='ch'){
-    const ytdSrc=yr==='2025'?A25:A26;
     ytdAct=chKeys.reduce((s,k)=>{
-      // 1) 마감된 월 누계
-      for(let i=0;i<CLOSED_CH;i++) s+=(ytdSrc[k]?.[i]??0);
+      // 1) 마감된 월 누계 — chDispEff 사용으로 mergeData 반영값 일관 적용
+      for(let i=0;i<CLOSED_CH;i++) s+=(chDispEff(k,i,yr)||0);
       // 2) 진행 중 월: DAILY_DETAIL에서 어제까지 일별 합산 (2026만)
       if(yr==='2026' && DAILY_DETAIL && DAILY_DETAIL['2026']){
         const moData = DAILY_DETAIL['2026'][String(_ytdCurMo)] || DAILY_DETAIL['2026'][_ytdCurMo];
