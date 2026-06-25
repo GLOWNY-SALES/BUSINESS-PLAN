@@ -246,6 +246,7 @@ tr:not(.grp-hd):not(.sub-ttl):not(.grand-ttl).act:hover td{background:#F2F2EE;}
 #dailyTblWrap thead tr.dly-hdr-ch   th{top:0;     z-index:3;}
 #dailyTblWrap thead tr.dly-hdr-cum  th{top:34px;  z-index:3;}
 #dailyTblWrap thead tr.dly-hdr-need th{top:80px;  z-index:3;}
+#dailyTblWrap thead tr th{transition:none;}
 #dailyTblWrap thead .sticky-l{z-index:4;}
 
 /* 상품분석 — 헤더 sticky */
@@ -2342,26 +2343,25 @@ function renderDailyTable(){
   });
   th+=`<th style="text-align:right;color:#1B5E20;background:#E8F5E9;border-bottom:2px solid #A5D6A7;">${cumulTotal.toLocaleString()}</th></tr>`;
 
-  // 잔여 일평균 고정 행 (진행중 월만)
-  if(!isClosedMo){
-    th+=`<tr class="dly-hdr-need" style="background:#FFF8E1;font-size:11px;">
-      <th class="sticky-l" style="background:#FFF8E1;color:#E65100;text-align:left;font-weight:700;">잔여 일평균<br><span style="font-size:9px;font-weight:400;">(${remDays}일)</span></th>`;
-    let needTotal=0;
-    visChs.forEach(c=>{
-      const goal=chMonthGoal(c.k);
-      const need=chDailyNeed(c.k,cumul[c.k]);
-      needTotal+=need;
-      const rate=goal>0?cumul[c.k]/goal:null;
-      th+=`<th style="text-align:right;color:#E65100;background:#FFF8E1;font-weight:400;">${need>0?need.toLocaleString()+'천':'✅'}${rate!==null?`<div style="font-size:9px;color:#888;">목 ${goal.toLocaleString()}천 (${fp(rate)})</div>`:''}</th>`;
-    });
-    th+=`<th style="text-align:right;color:#E65100;background:#FFF8E1;font-weight:700;border-bottom:2px solid #FFE082;">${needTotal>0?needTotal.toLocaleString()+'천':'✅'}</th></tr>`;
-  }
+  // 일평균 매출액 고정 행 (월 누계 기준, 채널별)
+  th+=`<tr class="dly-hdr-need" style="background:#FFF8E1;font-size:11px;">
+    <th class="sticky-l" style="background:#FFF8E1;color:#E65100;text-align:left;font-weight:700;">일평균 매출액<br><span style="font-size:9px;font-weight:400;">(~${mo}/${todayDay}, ${todayDay}일)</span></th>`;
+  let avgTotal=0;
+  visChs.forEach(c=>{
+    const avg=todayDay>0?Math.round(cumul[c.k]/todayDay):0;
+    avgTotal+=avg;
+    th+=`<th style="text-align:right;color:#E65100;background:#FFF8E1;font-weight:400;">${avg>0?avg.toLocaleString()+'천':'—'}</th>`;
+  });
+  th+=`<th style="text-align:right;color:#E65100;background:#FFF8E1;font-weight:700;border-bottom:2px solid #FFE082;">${avgTotal>0?avgTotal.toLocaleString()+'천':'—'}</th></tr>`;
   th+=`</thead>`;
 
   // 일별 행 + 주간 소계 (cumul 리셋)
   Object.keys(cumul).forEach(k=>cumul[k]=0);
   const weekCumul = Object.fromEntries(visChs.map(c=>[c.k,0]));
   let weekTotal=0;
+  let weekDays=0;
+  let prevWeekAvgTotal=null;
+  const prevWeekAvgCh=Object.fromEntries(visChs.map(c=>[c.k,null]));
   let tb='<tbody>';
 
   for(let d=1;d<=totalDays;d++){
@@ -2391,6 +2391,7 @@ function renderDailyTable(){
         tb+=`<td style="text-align:right;${rowBg?`background:${rowBg};`:''}">${disp!==null?disp.toLocaleString():'—'}</td>`;
       });
       weekTotal+=rowTotal;
+      weekDays++;
       tb+=`<td style="text-align:right;font-weight:700;${rowBg?`background:${rowBg};`:''}">${rowTotal>0?rowTotal.toLocaleString():'—'}</td></tr>`;
 
       // 일요일이거나 월 마지막 날이면 주간 소계
@@ -2400,10 +2401,35 @@ function renderDailyTable(){
           <td class="sticky-l" style="background:#EFF6FF;color:#1D4ED8;">주간 소계</td>`;
         visChs.forEach(c=>{
           tb+=`<td style="text-align:right;color:#1D4ED8;">${weekCumul[c.k]>0?weekCumul[c.k].toLocaleString():''}</td>`;
-          weekCumul[c.k]=0;
         });
         tb+=`<td style="text-align:right;color:#1D4ED8;">${weekTotal.toLocaleString()}</td></tr>`;
+        tb+=`<tr style="background:#F5F8FF;font-size:9px;font-weight:400;font-style:italic;">
+          <td class="sticky-l" style="background:#F5F8FF;color:#64748B;">주간 일평균 (${weekDays}일)</td>`;
+        let weekAvgTotal=0;
+        visChs.forEach(c=>{
+          const wAvg=weekDays>0?Math.round(weekCumul[c.k]/weekDays):0;
+          weekAvgTotal+=wAvg;
+          let chWow='';
+          if(prevWeekAvgCh[c.k]!==null && prevWeekAvgCh[c.k]>0 && wAvg>0){
+            const chPct=((wAvg-prevWeekAvgCh[c.k])/prevWeekAvgCh[c.k])*100;
+            const chUp=chPct>=0;
+            chWow=`<div style="font-size:7.5px;color:${chUp?'#059669':'#DC2626'};">${chUp?'▲':'▼'}${Math.abs(chPct).toFixed(1)}%p</div>`;
+          }
+          tb+=`<td style="text-align:right;color:#64748B;">${wAvg>0?wAvg.toLocaleString():''}${chWow}</td>`;
+          if(wAvg>0) prevWeekAvgCh[c.k]=wAvg;
+          weekCumul[c.k]=0;
+        });
+        const wAvgTotalDisp=weekDays>0?Math.round(weekTotal/weekDays):0;
+        let wowHtml1='';
+        if(prevWeekAvgTotal!==null && prevWeekAvgTotal>0 && wAvgTotalDisp>0){
+          const pct=((wAvgTotalDisp-prevWeekAvgTotal)/prevWeekAvgTotal)*100;
+          const up=pct>=0;
+          wowHtml1=`<div style="font-size:7.5px;color:${up?'#059669':'#DC2626'};">${up?'▲':'▼'}${Math.abs(pct).toFixed(1)}%p</div>`;
+        }
+        tb+=`<td style="text-align:right;color:#64748B;">${wAvgTotalDisp>0?wAvgTotalDisp.toLocaleString():''}${wowHtml1}</td></tr>`;
+        if(wAvgTotalDisp>0) prevWeekAvgTotal=wAvgTotalDisp;
         weekTotal=0;
+        weekDays=0;
       }
     } else {
       // 미진행 일자 — 빈 행으로 말일까지 표시
@@ -2423,10 +2449,33 @@ function renderDailyTable(){
           <td class="sticky-l" style="background:#EFF6FF;color:#1D4ED8;">주간 소계</td>`;
         visChs.forEach(c=>{
           tb+=`<td style="text-align:right;color:#1D4ED8;">${weekCumul[c.k]>0?weekCumul[c.k].toLocaleString():''}</td>`;
-          weekCumul[c.k]=0;
         });
         tb+=`<td style="text-align:right;color:#1D4ED8;">${weekTotal.toLocaleString()}</td></tr>`;
+        tb+=`<tr style="background:#F5F8FF;font-size:9px;font-weight:400;font-style:italic;">
+          <td class="sticky-l" style="background:#F5F8FF;color:#64748B;">주간 일평균 (${weekDays}일)</td>`;
+        visChs.forEach(c=>{
+          const wAvg=weekDays>0?Math.round(weekCumul[c.k]/weekDays):0;
+          let chWow='';
+          if(prevWeekAvgCh[c.k]!==null && prevWeekAvgCh[c.k]>0 && wAvg>0){
+            const chPct=((wAvg-prevWeekAvgCh[c.k])/prevWeekAvgCh[c.k])*100;
+            const chUp=chPct>=0;
+            chWow=`<div style="font-size:7.5px;color:${chUp?'#059669':'#DC2626'};">${chUp?'▲':'▼'}${Math.abs(chPct).toFixed(1)}%p</div>`;
+          }
+          tb+=`<td style="text-align:right;color:#64748B;">${wAvg>0?wAvg.toLocaleString():''}${chWow}</td>`;
+          if(wAvg>0) prevWeekAvgCh[c.k]=wAvg;
+          weekCumul[c.k]=0;
+        });
+        const wAvgTotalDisp=weekDays>0?Math.round(weekTotal/weekDays):0;
+        let wowHtml2='';
+        if(prevWeekAvgTotal!==null && prevWeekAvgTotal>0 && wAvgTotalDisp>0){
+          const pct=((wAvgTotalDisp-prevWeekAvgTotal)/prevWeekAvgTotal)*100;
+          const up=pct>=0;
+          wowHtml2=`<div style="font-size:7.5px;color:${up?'#059669':'#DC2626'};">${up?'▲':'▼'}${Math.abs(pct).toFixed(1)}%p</div>`;
+        }
+        tb+=`<td style="text-align:right;color:#64748B;">${wAvgTotalDisp>0?wAvgTotalDisp.toLocaleString():''}${wowHtml2}</td></tr>`;
+        if(wAvgTotalDisp>0) prevWeekAvgTotal=wAvgTotalDisp;
         weekTotal=0;
+        weekDays=0;
       }
     }
   }
@@ -2435,6 +2484,15 @@ function renderDailyTable(){
 
   tb+='</tbody>';
   document.getElementById('dailyTblWrap').innerHTML=`<table>${th}${tb}</table>`;
+  requestAnimationFrame(()=>{
+    // 헤더 행 실제 렌더 높이를 기준으로 sticky top 오프셋을 동적으로 재계산 (텍스트 줄바꿈 등으로 인한 그리드 겹침 방지)
+    const headRows=document.querySelectorAll('#dailyTblWrap thead tr');
+    let acc=0;
+    headRows.forEach(tr=>{
+      tr.querySelectorAll('th').forEach(th=>{ th.style.top=acc+'px'; });
+      acc+=tr.offsetHeight;
+    });
+  });
   requestAnimationFrame(()=>{
     const ctx=document.getElementById('dailyChart');
     if(!ctx) return;
